@@ -1,0 +1,12 @@
+*.DS_Store
+
+.idea
+cmake-build-debug
+
+build
+
+*.pyc
+*.log
+__pycache__
+save_video
+save_model

@@ -1,0 +1,40 @@
+{
+    "width": 500,
+    "height": 500,
+    "static-file": "static.map",
+    "obstacle-style": "rgba(170,170,170,1)",
+    "dynamic-file-directory": "data",
+    "attack-style": "rbga(0,0,0,0.8)",
+    "minimap-width": 300,
+    "minimap-height": 250,
+    "group" : [
+        {
+            "height": 1,
+            "width": 1,
+            "style": "rgba(150,100,100,1)",
+            "anchor": [0, 0],
+            "max-speed": 1,
+            "vision-radius": 5,
+            "vision-angle": 360,
+            "vision-style": "rgba(150,100,100,0.05)",
+            "attack-radius": 3,
+            "attack-angle": 60,
+            "attack-style": "rgba(150,100,100,0.1)",
+            "broadcast-radius": 1
+        },
+        {
+            "height": 1,
+            "width": 1,
+            "style": "rgba(0,200,0,1)",
+            "anchor": [0, 0],
+            "max-speed": 1,
+            "vision-radius": 4,
+            "vision-angle": 360,
+            "vision-style": "rgba(0,0,200,0.05)",
+            "attack-radius": 1,
+            "attack-angle": 180,
+            "attack-style": "rgba(0,0,200,0.1)",
+            "broadcast-radius": 1
+        }
+    ]
+}

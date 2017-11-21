@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>magent Viewer</title>
+    <script type="application/javascript" src="vendor/jquery.min.js"></script>
+
+    <link href="vendor/bootstrap.min.css" rel="stylesheet">
+    <script type="application/javascript" src="vendor/bootstrap.min.js"></script>
+
+    <link href="vendor/jquery.jgrowl.min.css" rel="stylesheet">
+    <script type="application/javascript" src="vendor/jquery.jgrowl.min.js"></script>
+
+    <link href="vendor/bootstrap-toggle.min.css" rel="stylesheet">
+    <script type="application/javascript" src="vendor/bootstrap-toggle.min.js"></script>
+</head>
+<body>
+<style>
+    * { margin: 0; padding: 0;}
+    body, html { height:100%; }
+</style>
+<div class="modal fade" id="magnet-file-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Files</h4>
+            </div>
+            <div class="modal-body">
+                <form id="magnet-file-form" class="form-horizontal">
+                    <div class="form-group">
+                        <label for="magnet-file-form-conf" class="col-sm-2 control-label">Configuration</label>
+                        <div class="col-sm-10">
+                            <input class="form-control" id="magnet-file-form-conf"
+                                   placeholder="Enter magent configuration file here">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="magnet-file-form-map" class="col-sm-2 control-label">Map File</label>
+                        <div class="col-sm-10">
+                            <input class="form-control" id="magnet-file-form-map"
+                                   placeholder="Enter magent map file here">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10 btn-group">
+                            <button id="magnet-file-form-submit" class="btn btn-primary">Load & Play!</button>
+                            <button type="reset" class="btn btn-success">Reset</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="magnet-settings-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Settings</h4>
+            </div>
+            <div class="modal-body">
+                <label for="magnet-settings-speed">Speed: </label>
+                <input type="range" id="magnet-settings-speed" disabled min="0" max="500" value="0">
+            </div>
+            <div class="modal-body">
+                <label for="magnet-settings-progress">Progress: </label>
+                <input type="range" id="magnet-settings-progress" disabled value="0">
+            </div>
+            <div class="modal-body">
+                <label for="magnet-settings-minimap">MiniMAP: </label>
+                <input type="checkbox" id="magnet-settings-minimap" data-toggle="toggle">
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="magnet-help-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Help</h4>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+<canvas id="magnet-canvas-grid" style="z-index: 0; position:absolute; width:100%; height: 100%"></canvas>
+<canvas id="magnet-canvas-static" style="z-index: 0; position:absolute; width:100%; height: 100%"></canvas>
+<canvas id="magnet-canvas-agent-body" style="z-index: 1; position:absolute; width:100%; height: 100%"></canvas>
+<canvas id="magnet-canvas-agent-range" style="z-index: 2; position:absolute; width:100%; height: 100%"></canvas>
+<canvas id="magnet-canvas-event" style="z-index: 3; position:absolute; width:100%; height: 100%"></canvas>
+<canvas id="magnet-canvas-agent-hp" style="z-index: 4; position:absolute; width:100%; height: 100%"></canvas>
+<div style="position: relative; float: right">
+    <canvas id="magnet-canvas-status-physical-information" style="position: absolute; left: 0; top: 0; z-index: 5;"></canvas>
+    <canvas id="magnet-canvas-status-statistics" style="position: relative; left: 0; top: 0; z-index: 4;"></canvas>
+</div>
+<canvas id="magnet-canvas-minimap" style="z-index: 5; position:absolute;"></canvas>
+<canvas id="magnet-canvas-minimap-position" style="z-index: 5; position:absolute; "></canvas>
+<script type="application/javascript" src="js/render-parameter.js"></script>
+<script type="application/javascript" src="js/render-handle.js"></script>
+<script type="application/javascript" src="js/render.js"></script>
+</body>
+</html>
