@@ -49,8 +49,8 @@ void Map::reset(int width, int height, bool food_mode) {
 Position Map::get_random_blank(std::default_random_engine &random_engine, int width, int height) {
     int tries = 0;
     while (true) {
-        int x = (int)random_engine() % (w - width);
-        int y = (int)random_engine() % (h - height);
+        int x = (int) random_engine() % (w - width);
+        int y = (int) random_engine() % (h - height);
 
         if (is_blank_area(x, y, width, height)) {
             return Position{x, y};
@@ -59,6 +59,137 @@ Position Map::get_random_blank(std::default_random_engine &random_engine, int wi
         if (tries++ > w * h) {
             LOG(FATAL) << "cannot find a blank position in a filled map";
         }
+    }
+}
+
+std::vector<Position> Map::get_random_blank_with_fixed_points(std::default_random_engine &random_engine, Position left_top,
+                                                             Position right_bottom, const int thick) {
+    int left_x = left_top.x, left_y = left_top.y;
+    int right_x = right_bottom.x, right_y = right_bottom.y;
+
+    std::vector<Position> pos_set;
+
+    //TODO: scan with width and height
+    for (int i = 0; i < thick; i++) {
+        int temp_x_top = left_x + i, temp_y_top = left_y + i;
+        int temp_x_bottom = right_x - i, temp_y_bottom = right_y - i;
+        int width = temp_y_bottom - temp_y_top + 1, height = temp_x_bottom - temp_x_top + 1;
+
+        // filled num
+        int filled_num = width * height * 4 / 5;
+        int total = width * height;
+
+        auto* a = new int [total];
+
+        // produce no replace random
+        for (int j = 0; j < total; j++) a[j] = j;
+        for (int j = total; j >= 1; j--) std::swap(a[j], a[random_engine() % j]);
+
+        for (int j = 0; j < filled_num; j++) {
+            if (a[j] < height) pos_set.push_back(Position{temp_x_top + a[j], temp_y_top});
+            else if (a[j] >= height && a[j] < width + height - 1) {
+                int offset = a[j] - height + 1;
+                pos_set.push_back(Position{temp_x_top, temp_y_top + offset});
+            }
+            else if (a[j] >= width + height - 1 && a[j] < width + height * 2 - 2){
+                int offset = a[j] - width - height + 2;
+                pos_set.push_back(Position{temp_x_bottom - offset, temp_y_bottom});
+            } else {
+                int offset = a[j] - width - height * 2 + 3;
+                pos_set.push_back(Position{temp_x_top, temp_y_bottom - offset});
+            }
+        }
+
+        delete[] a;
+    }
+
+    return pos_set;
+}
+
+void Map::dfs(int x, int y, int thick, int mode) {
+    /**
+     * mode == 0: horizontal
+     * mode == 1: vertical
+     */
+    int x_b = x + thick, y_b = y + thick;
+
+    slots[pos2int(x, y)].slot_type = BLANK;
+    if (mode) {
+        int cur_x = x, cur_y = y;
+        while (cur_x != x_b) {
+            int dir = std::rand() % 4;
+            switch (dir) {
+                case 0:
+                    cur_x = std::max(cur_x - 1, x);
+                    break;
+                case 1:
+                    cur_y = std::min(cur_y + 1, y_b);
+                    break;
+                case 2:
+                    cur_x = std::min(cur_x + 1, x_b);
+                    break;
+                case 3:
+                    cur_y = std::max(cur_y - 1, y);
+                    break;
+                default:
+                    break;
+            }
+            PositionInteger pos_int = pos2int(cur_x, cur_y);
+            if (slots[pos_int].slot_type == OBSTACLE) slots[pos_int].slot_type = BLANK;
+        }
+    } else {
+        int cur_x = x, cur_y = y;
+        while (cur_y != y_b) {
+            int dir = std::rand() % 4;
+            switch (dir) {
+                case 0:
+                    cur_x = std::max(cur_x - 1, x);
+                    break;
+                case 1:
+                    cur_y = std::min(cur_y + 1, y_b);
+                    break;
+                case 2:
+                    cur_x = std::min(cur_x + 1, x_b);
+                    break;
+                case 3:
+                    cur_y = std::max(cur_y - 1, y);
+                    break;
+                default:
+                    break;
+            }
+            PositionInteger pos_int = pos2int(cur_x, cur_y);
+            if (slots[pos_int].slot_type == OBSTACLE) slots[pos_int].slot_type = BLANK;
+        }
+    }
+}
+
+void Map::add_slots_passing(std::default_random_engine &random_engine, Position left_top,
+                                             Position right_bottom, int thick) {
+    //TODO: add many slot-passing
+    int x_top = left_top.x, y_top = left_top.y, x_bottom = right_bottom.x - thick, y_bottom = right_bottom.y - thick;
+    int width = y_bottom - y_top, height = x_bottom - x_top;
+    int n_w = width / thick, n_h = height / thick;
+
+    int temp_x_top = x_top, temp_y_top = y_top;
+    int temp_x_bottom = x_bottom, temp_y_bottom = y_bottom;
+
+    // North and west
+    for (int i = 0; i < n_w; i++) {
+        temp_y_top += i * thick;
+        temp_y_bottom -= i * thick;
+        dfs(temp_x_top, temp_y_top, 20, 1);
+        dfs(temp_x_bottom, temp_y_bottom, 20, 1);
+    }
+
+    temp_x_top = x_top, temp_y_top = y_top;
+    temp_x_bottom = x_bottom, temp_y_bottom = y_bottom;
+
+    // West and east
+    for (int i = 0; i < n_h; i++) {
+        temp_x_top += i * thick;
+        temp_x_bottom -= i * thick;
+        dfs(temp_x_top, temp_y_top, 20, 0);
+        dfs(temp_x_bottom, temp_y_bottom, 20, 0);
     }
 }
 
@@ -111,6 +242,20 @@ int Map::add_wall(Position pos) {
         return 1;
     slots[pos_int].slot_type = OBSTACLE;
     set_channel_id(pos_int, wall_channel_id);
+    return 0;
+}
+
+int Map::add_many_walls(std::vector<Position> pos_set) {
+    auto num = pos_set.size();
+
+    for (auto i = 0; i < num; i++) {
+        PositionInteger pos_int = pos2int(pos_set[i]);
+        if (slots[pos_int].slot_type == BLANK && slots[pos_int].occupier != nullptr)
+            return 1;
+        slots[pos_int].slot_type = OBSTACLE;
+        set_channel_id(pos_int, wall_channel_id);
+    }
+
     return 0;
 }
 
