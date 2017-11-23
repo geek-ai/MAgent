@@ -207,7 +207,7 @@ void GridWorld::add_agents(GroupHandle group, int n, const char *method,
 
             // TODO: add new rule for maze making
             int x_start = pos_x[0], y_start = pos_x[1];
-            int thick = 20;
+            int thick = 10;
             int width = 2 * thick + 80, height = 2 * thick + 80;   // figure that the width of wall is 20 (padding 20)
 
             Position left_up = Position{x_start, y_start};
@@ -220,7 +220,7 @@ void GridWorld::add_agents(GroupHandle group, int n, const char *method,
             map.add_many_walls(pos_set);
 
             // construct passing slots
-             map.add_slots_passing(random_engine, left_up, right_bottom, thick);
+//             map.add_slots_passing(random_engine, left_up, right_bottom, thick);
 
         } else {
             LOG(FATAL) << "unsupported method in GridWorld::add_agents : " << method;

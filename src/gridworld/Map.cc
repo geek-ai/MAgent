@@ -77,7 +77,7 @@ std::vector<Position> Map::get_random_blank_with_fixed_points(std::default_rando
 
         // filled num
         int total = (width + height) * 2 - 4;
-        int filled_num = total * 4 / 5;
+        int filled_num = total * 2 / 5;
 
         auto* a = new int [total];
 
@@ -96,7 +96,7 @@ std::vector<Position> Map::get_random_blank_with_fixed_points(std::default_rando
                 pos_set.push_back(Position{temp_x_bottom, temp_y_bottom - offset});
             } else {
                 int offset = a[j] - width - height * 2 + 3;
-                pos_set.push_back(Position{temp_x_bottom - offset, temp_y_top});
+                pos_set.push_back(Position{temp_x_bottom - offset, temp_y_bottom});
             }
         }
 
@@ -114,51 +114,59 @@ void Map::dfs(std::default_random_engine &random_engine, int x, int y, int thick
     int x_b = x + thick, y_b = y + thick;
 
     slots[pos2int(x, y)].slot_type = BLANK;
+    channel_ids[pos2int(x, y)] = -1;
     if (mode) {
-        int cur_x = x, cur_y = y;
-        while (cur_x != x_b) {
-            auto dir = random_engine() % 4;
-            switch (dir) {
-                case 0:
-                    cur_x = std::max(cur_x - 1, x);
-                    break;
-                case 1:
-                    cur_y = std::min(cur_y + 1, y_b);
-                    break;
-                case 2:
-                    cur_x = std::min(cur_x + 1, x_b);
-                    break;
-                case 3:
-                    cur_y = std::max(cur_y - 1, y);
-                    break;
-                default:
-                    break;
-            }
-            PositionInteger pos_int = pos2int(cur_x, cur_y);
-            if (slots[pos_int].slot_type == OBSTACLE) slots[pos_int].slot_type = BLANK;
-        }
-    } else {
         int cur_x = x, cur_y = y;
         while (cur_y != y_b) {
             auto dir = random_engine() % 4;
             switch (dir) {
-                case 0:
-                    cur_x = std::max(cur_x - 1, x);
+                case 0: // North
+                    cur_y = std::max(cur_y - 1, y);
                     break;
-                case 1:
-                    cur_y = std::min(cur_y + 1, y_b);
-                    break;
-                case 2:
+                case 1: // East
                     cur_x = std::min(cur_x + 1, x_b);
                     break;
-                case 3:
-                    cur_y = std::max(cur_y - 1, y);
+                case 2: // South
+                    cur_y = std::min(cur_y + 1, y_b);
+                    break;
+                case 3: // West
+                    cur_x = std::max(cur_x - 1, x);
                     break;
                 default:
                     break;
             }
             PositionInteger pos_int = pos2int(cur_x, cur_y);
-            if (slots[pos_int].slot_type == OBSTACLE) slots[pos_int].slot_type = BLANK;
+            if (slots[pos_int].slot_type == OBSTACLE) {
+                slots[pos_int].slot_type = BLANK;
+                channel_ids[pos_int] = -1;
+            }
+        }
+        std::cout << "Hahah" << std::endl;
+    } else {
+        int cur_x = x, cur_y = y;
+        while (cur_x != x_b) {
+            auto dir = random_engine() % 4;
+            switch (dir) {
+                case 0: // North
+                    cur_y = std::max(cur_y - 1, y);
+                    break;
+                case 1: // East
+                    cur_x = std::min(cur_x + 1, x_b);
+                    break;
+                case 2: // South
+                    cur_y = std::min(cur_y + 1, y_b);
+                    break;
+                case 3: // West
+                    cur_x = std::max(cur_x - 1, x);
+                    break;
+                default:
+                    break;
+            }
+            PositionInteger pos_int = pos2int(cur_x, cur_y);
+            if (slots[pos_int].slot_type == OBSTACLE) {
+                slots[pos_int].slot_type = BLANK;
+                channel_ids[pos_int] = -1;
+            }
         }
     }
 }
@@ -167,8 +175,8 @@ void Map::add_slots_passing(std::default_random_engine &random_engine, Position 
                                              Position right_bottom, int thick) {
 
     int x_top = left_top.x, y_top = left_top.y, x_bottom = right_bottom.x - thick, y_bottom = right_bottom.y - thick;
-    int width = y_bottom - y_top, height = x_bottom - x_top;
-    int block = thick;
+    int height = y_bottom - y_top, width = x_bottom - x_top;
+    int block = 10;
     int n_w = width / block, n_h = height / block;
 
     int temp_x_top = x_top, temp_y_top = y_top;
@@ -176,8 +184,8 @@ void Map::add_slots_passing(std::default_random_engine &random_engine, Position 
 
     // North and west
     for (int i = 0; i < n_w; i++) {
-        temp_y_top += i * thick;
-        temp_y_bottom -= i * thick;
+        temp_x_top += i * thick;
+        temp_x_bottom -= i * thick;
         dfs(random_engine, temp_x_top, temp_y_top, block, 1);
         dfs(random_engine, temp_x_bottom, temp_y_bottom, block, 1);
     }
@@ -187,8 +195,8 @@ void Map::add_slots_passing(std::default_random_engine &random_engine, Position 
 
     // West and east
     for (int i = 0; i < n_h; i++) {
-        temp_x_top += i * thick;
-        temp_x_bottom -= i * thick;
+        temp_y_top += i * thick;
+        temp_y_bottom -= i * thick;
         dfs(random_engine, temp_x_top, temp_y_top, block, 0);
         dfs(random_engine, temp_x_bottom, temp_y_bottom, block, 0);
     }
@@ -251,15 +259,11 @@ int Map::add_many_walls(std::vector<Position> pos_set) {
 
     for (auto i = 0; i < num; i++) {
         PositionInteger pos_int = pos2int(pos_set[i]);
-        if (pos_int < 0) {
-            std::cout << pos_set[i].x << " " << pos_set[i].y << " " << pos_int << std::endl;
-            break;
-        }
-//        if (slots[pos_int].slot_type == BLANK && slots[pos_int].occupier != nullptr)
-//            continue;
-//        // has some issues
-//        slots[pos_int].slot_type = OBSTACLE;
-//        set_channel_id(pos_int, wall_channel_id);
+        if (slots[pos_int].slot_type == BLANK && slots[pos_int].occupier != nullptr)
+            continue;
+        // has some issues
+        slots[pos_int].slot_type = OBSTACLE;
+        set_channel_id(pos_int, wall_channel_id);
     }
 
     return 0;
