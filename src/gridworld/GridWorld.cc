@@ -205,22 +205,16 @@ void GridWorld::add_agents(GroupHandle group, int n, const char *method,
              * then add wall around the center block ignore all slots
              */
 
-            // TODO: add new rule for maze making
-            int x_start = pos_x[0], y_start = pos_x[1];
-            int thick = 10;
-            int width = 2 * thick + 80, height = 2 * thick + 80;   // figure that the width of wall is 20 (padding 20)
+            int x_start = pos_x[0], y_start = pos_x[1], x_end = pos_x[2], y_end = pos_x[3], thick = pos_x[4];
 
             Position left_up = Position{x_start, y_start};
-            Position right_bottom = Position{x_start + height, y_start + width};
+            Position right_bottom = Position{x_end, y_end};
 
             // add blocks
             std::vector<Position> pos_set = map.get_random_blank_with_fixed_points(random_engine, left_up, right_bottom,
                                                                                    thick);
-            // add four slide walls, with ignore warning
+            // add four slide walls
             map.add_many_walls(pos_set);
-
-            // construct passing slots
-//             map.add_slots_passing(random_engine, left_up, right_bottom, thick);
 
         } else {
             LOG(FATAL) << "unsupported method in GridWorld::add_agents : " << method;

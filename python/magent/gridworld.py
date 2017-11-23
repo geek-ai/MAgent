@@ -191,8 +191,9 @@ class GridWorld(Environment):
                                       0, 0, 0)
         elif method == "maze":
             # TODO: implement maze add
-            x, y = kwargs["pos"][0], kwargs["pos"][1]
-            bind = np.array([x, y], dtype=np.int32)
+            x_start, y_start, x_end, y_end = kwargs["pos"][0], kwargs["pos"][1], kwargs["pos"][2], kwargs["pos"][3]
+            thick = kwargs["pos"][4]
+            bind = np.array([x_start, y_start, x_end, y_end, thick], dtype=np.int32)
             _LIB.gridworld_add_agents(self.game, handle, 0, b"maze", as_int32_c_array(bind),
                                       0, 0, 0)
         else:
