@@ -5,8 +5,10 @@ The basic environment is a large gridworld.
 agents are controlled by groups.
 
 # Observation
+There are two parts in observation, spacial local view and non-spacial feature. 
 
 # Action
+Actions are discrete actions. They can be move, turn, attack.
 
 # Run the first demo
 ```bash
@@ -14,9 +16,9 @@ export PYTHONPATH=$(pwd)/python:$PYTHONPATH
 python examples/api_demo.py
 ```
 
-In this environment, blue agents are trained by Deep Q-Network, red agents act randomly.
-Blue agents can only get rewards when two blue agents attack a red agents simultaneously.
-So blue agents need to cooperate with each other.
+In this environment, predators are pursuing preys. Predators can get rewards by attacking preys.
+The predators and preys are trained by Deep Q-Network.
+After training, predators learn to lock preys by cooperating with each other.
 
 # See the video
 * Go to directory `build/render`
@@ -26,5 +28,5 @@ So blue agents need to cooperate with each other.
 * In the render, press arrow keys 'up', 'down', 'left', 'right' to move scope window. Press '<', '>' to zoom in or zoom out. For more help, press 'h'
 
 # Next step
-see 'train_tiger.py' to know how the above agents are trained.  
+see 'train_pursuit.py' to know how the above agents are trained.
 try other examples and have fun!

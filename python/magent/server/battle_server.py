@@ -79,8 +79,8 @@ class BattleServer(BaseServer):
         models.append(DeepQNetwork(env, handles[1], 'battle2', use_conv=True))
 
         # load model
-        models[0].load(path, 8, 'battle')
-        models[1].load(path, 3, 'battle')
+        models[0].load(path, 1, 'battle')
+        models[1].load(path, 2, 'battle')
         
         # init environment
         env.reset()

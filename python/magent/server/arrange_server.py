@@ -97,13 +97,13 @@ def generate_map(env, map_size, goal_handle, handles, messages, font):
     # agent
     pos = []
 
-    add_square(pos, map_size * 0.9, 3)
-    add_square(pos, map_size * 0.8, 3)
-    add_square(pos, map_size * 0.7, 3)
+    add_square(pos, map_size * 0.9, 2)
+    add_square(pos, map_size * 0.8, 2)
+    add_square(pos, map_size * 0.7, 2)
     add_square(pos, map_size * 0.65, 2)
 
     pos = np.array(pos)
-    pos = pos[np.random.choice(np.arange(len(pos)), int(circle_goal_num + alpha_goal_num * 1.2), replace=False)]
+    pos = pos[np.random.choice(np.arange(len(pos)), int(circle_goal_num + alpha_goal_num * 1.1), replace=False)]
 
     env.add_agents(handles[0], method="custom", pos=pos)
 
@@ -124,7 +124,7 @@ class ArrangeServer(BaseServer):
         models.append(DeepQNetwork(env, handles[0], 'arrange', use_conv=True))
 
         # load model
-        models[0].load(path, 2021)
+        models[0].load(path, 1149)
 
         # init environment
         env.reset()
@@ -143,7 +143,7 @@ class ArrangeServer(BaseServer):
 
     def get_group_info(self):
         ret = self.env._get_groups_info()
-        #ret[1] = ret[0]
+        ret[1] = ret[0]
         return ret
 
     def get_static_info(self):
@@ -155,7 +155,7 @@ class ArrangeServer(BaseServer):
         models = self.models
         env = self.env
 
-        for j in range(4):
+        for j in range(2):
             obs = [env.get_observation(handle) for handle in handles]
             ids = [env.get_agent_id(handle) for handle in handles]
 

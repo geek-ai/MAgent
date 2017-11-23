@@ -15,7 +15,7 @@ class DeepQNetwork(TFBaseModel):
                  train_freq=1, target_update=2000, memory_size=2 ** 20, eval_obs=None,
                  use_dueling=True, use_double=True, use_conv=True,
                  custom_view_space=None, custom_feature_space=None, num_gpu=1,
-                 network_type=0):
+                 infer_batch_size=8192, network_type=0):
         TFBaseModel.__init__(self, env, handle, name, "tfdqn")
         # ======================== set config  ========================
         self.env = env
@@ -29,8 +29,8 @@ class DeepQNetwork(TFBaseModel):
         self.train_freq   = train_freq     # train time of every sample (s,a,r,s')
         self.target_update= target_update  # target network update frequency
         self.eval_obs     = eval_obs
-        self.infer_batch_size_limit = 200000  # maximum batch size when infer actions,
-                                              # change this to fit your GPU memory if you meet a OOM
+        self.infer_batch_size = infer_batch_size  # maximum batch size when infer actions,
+        # change this to fit your GPU memory if you meet a OOM
 
         self.use_dueling  = use_dueling
         self.use_double   = use_double
@@ -112,6 +112,7 @@ class DeepQNetwork(TFBaseModel):
         # if mask[i] == 0, then the item is used for padding, not for training
 
     def _create_network(self, input_view, input_feature, use_conv=True, reuse=None):
+        """create network"""
         kernel_num  = [32, 32]
         hidden_size = [256]
 
@@ -144,6 +145,7 @@ class DeepQNetwork(TFBaseModel):
         return qvalues
 
     def infer_action(self, raw_obs, ids, policy='e_greedy', eps=0):
+        """infer action for observation and ids"""
         view, feature = raw_obs[0], raw_obs[1]
 
         if policy == 'e_greedy':
@@ -151,26 +153,24 @@ class DeepQNetwork(TFBaseModel):
         elif policy == 'greedy':
             eps = 0
 
-        if len(ids) < self.infer_batch_size_limit:
-            ret = self.sess.run(self.output_action, feed_dict={
-                self.input_view: view,
-                self.input_feature: feature,
-                self.eps: eps})
-        else:
-            if self.num_gpu > 1:   # infer by multi gpu in parallel
-                ret = self._infer_multi_gpu(view, feature, ids, eps)
-            else:                  # infer by spliting big batch in serial
-                ret = []
-                for i in range(0, len(ids), self.infer_batch_size_limit):
-                    beg, end = i, i + self.infer_batch_size_limit
-                    ret.append(self.sess.run(self.output_action, feed_dict={
-                        self.input_view: view[beg:end],
-                        self.input_feature: feature[beg:end],
-                        self.eps: eps}))
-                ret = np.concatenate(ret)
+        n = len(view)
+        batch_size = min(n, self.infer_batch_size)
+
+        if self.num_gpu > 1 and n > batch_size:   # infer by multi gpu in parallel
+            ret = self._infer_multi_gpu(view, feature, ids, eps)
+        else:                  # infer by splitting big batch in serial
+            ret = []
+            for i in range(0, n, batch_size):
+                beg, end = i, i + batch_size
+                ret.append(self.sess.run(self.output_action, feed_dict={
+                    self.input_view: view[beg:end],
+                    self.input_feature: feature[beg:end],
+                    self.eps: eps}))
+            ret = np.concatenate(ret)
         return ret
 
     def _calc_target(self, next_view, next_feature, rewards, terminal):
+        """calculate target value"""
         n = len(rewards)
         if self.use_double:
             t_qvalues, qvalues = self.sess.run([self.target_qvalues, self.qvalues],
@@ -187,6 +187,7 @@ class DeepQNetwork(TFBaseModel):
         return target
 
     def _add_to_replay_buffer(self, sample_buffer):
+        """add samples in sample_buffer to replay buffer"""
         n = 0
         for episode in sample_buffer.episodes():
             v, f, a, r = episode.views, episode.features, episode.actions, episode.rewards
@@ -213,6 +214,7 @@ class DeepQNetwork(TFBaseModel):
         return n
 
     def train(self, sample_buffer, print_every=1000):
+        """ add new samples in sample_buffer to replay buffer and train """
         add_num = self._add_to_replay_buffer(sample_buffer)
         batch_size = self.batch_size
         total_loss = 0
@@ -306,10 +308,10 @@ class DeepQNetwork(TFBaseModel):
         while beg < len(ids):
             feed_dict = {self.eps: eps}
             for i in range(self.num_gpu):
-                end = beg + self.infer_batch_size_limit
+                end = beg + self.infer_batch_size
                 feed_dict[self.infer_input_view[i]] = view[beg:end]
                 feed_dict[self.infer_input_feature[i]] = feature[beg:end]
-                beg += self.infer_batch_size_limit
+                beg += self.infer_batch_size
 
             ret.extend(self.sess.run(self.infer_out_action, feed_dict=feed_dict))
         return np.concatenate(ret)

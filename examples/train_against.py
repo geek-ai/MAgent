@@ -197,7 +197,7 @@ if __name__ == "__main__":
                                    memory_size=4 * 625, train_freq=train_freq, eval_obs=eval_obs[0]))
         step_batch_size = None
     elif args.alg == 'a2c':
-        from magent.builtin.tf_model import AdvantageActorCritic
+        from magent.builtin.mx_model import AdvantageActorCritic
         step_batch_size = 10 * args.map_size * args.map_size * 0.04
         models.append(magent.ProcessingModel(env, handles[0], names[0], 1000, AdvantageActorCritic,
                                              learning_rate=1e-3))
