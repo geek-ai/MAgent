@@ -73,30 +73,30 @@ std::vector<Position> Map::get_random_blank_with_fixed_points(std::default_rando
     for (int i = 0; i < thick; i++) {
         int temp_x_top = left_x + i, temp_y_top = left_y + i;
         int temp_x_bottom = right_x - i, temp_y_bottom = right_y - i;
-        int width = temp_y_bottom - temp_y_top + 1, height = temp_x_bottom - temp_x_top + 1;
+        int width = temp_x_bottom - temp_x_top + 1, height = temp_y_bottom - temp_y_top + 1;
 
         // filled num
-        int filled_num = width * height * 4 / 5;
-        int total = width * height;
+        int total = (width + height) * 2 - 4;
+        int filled_num = total * 4 / 5;
 
         auto* a = new int [total];
 
         // produce no replace random
         for (int j = 0; j < total; j++) a[j] = j;
-        for (int j = total; j >= 1; j--) std::swap(a[j], a[random_engine() % j]);
+        for (int j = total - 1; j >= 1; j--) std::swap(a[j], a[random_engine() % j]);
 
         for (int j = 0; j < filled_num; j++) {
-            if (a[j] < height) pos_set.push_back(Position{temp_x_top + a[j], temp_y_top});
-            else if (a[j] >= height && a[j] < width + height - 1) {
+            if (a[j] < height) {
+                pos_set.push_back(Position{temp_x_top, temp_y_top + a[j]});
+            } else if (a[j] >= height && a[j] < width + height - 1) {
                 int offset = a[j] - height + 1;
-                pos_set.push_back(Position{temp_x_top, temp_y_top + offset});
-            }
-            else if (a[j] >= width + height - 1 && a[j] < width + height * 2 - 2){
+                pos_set.push_back(Position{temp_x_top + offset, temp_y_top});
+            } else if (a[j] >= width + height - 1 && a[j] < width + height * 2 - 2){
                 int offset = a[j] - width - height + 2;
-                pos_set.push_back(Position{temp_x_bottom - offset, temp_y_bottom});
+                pos_set.push_back(Position{temp_x_bottom, temp_y_bottom - offset});
             } else {
                 int offset = a[j] - width - height * 2 + 3;
-                pos_set.push_back(Position{temp_x_top, temp_y_bottom - offset});
+                pos_set.push_back(Position{temp_x_bottom - offset, temp_y_top});
             }
         }
 
@@ -249,13 +249,15 @@ int Map::add_wall(Position pos) {
 int Map::add_many_walls(std::vector<Position> pos_set) {
     auto num = pos_set.size();
 
-    for (auto i = 0; i < 1; i++) {
+    for (auto i = 0; i < num; i++) {
         PositionInteger pos_int = pos2int(pos_set[i]);
-        if (slots[pos_int].slot_type == BLANK && slots[pos_int].occupier != nullptr)
-            continue;
-        // has some issues
-        std::cout << "Bug" << std::endl;
-//        std::cout << "Post_int" << pos_int << std::endl;
+        if (pos_int < 0) {
+            std::cout << pos_set[i].x << " " << pos_set[i].y << " " << pos_int << std::endl;
+            break;
+        }
+//        if (slots[pos_int].slot_type == BLANK && slots[pos_int].occupier != nullptr)
+//            continue;
+//        // has some issues
 //        slots[pos_int].slot_type = OBSTACLE;
 //        set_channel_id(pos_int, wall_channel_id);
     }

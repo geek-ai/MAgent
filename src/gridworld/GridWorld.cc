@@ -220,7 +220,7 @@ void GridWorld::add_agents(GroupHandle group, int n, const char *method,
             map.add_many_walls(pos_set);
 
             // construct passing slots
-            // map.add_slots_passing(random_engine, left_up, right_bottom, thick);
+             map.add_slots_passing(random_engine, left_up, right_bottom, thick);
 
         } else {
             LOG(FATAL) << "unsupported method in GridWorld::add_agents : " << method;
