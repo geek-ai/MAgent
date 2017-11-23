@@ -211,7 +211,7 @@ void GridWorld::add_agents(GroupHandle group, int n, const char *method,
             int width = 2 * thick + 80, height = 2 * thick + 80;   // figure that the width of wall is 20 (padding 20)
 
             Position left_up = Position{x_start, y_start};
-            Position right_bottom = Position{x_start + width, y_start};
+            Position right_bottom = Position{x_start + height, y_start + width};
 
             // add blocks
             std::vector<Position> pos_set = map.get_random_blank_with_fixed_points(random_engine, left_up, right_bottom,
@@ -220,7 +220,7 @@ void GridWorld::add_agents(GroupHandle group, int n, const char *method,
             map.add_many_walls(pos_set);
 
             // construct passing slots
-            map.add_slots_passing(random_engine, left_up, right_bottom, thick);
+            // map.add_slots_passing(random_engine, left_up, right_bottom, thick);
 
         } else {
             LOG(FATAL) << "unsupported method in GridWorld::add_agents : " << method;

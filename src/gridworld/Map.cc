@@ -106,7 +106,7 @@ std::vector<Position> Map::get_random_blank_with_fixed_points(std::default_rando
     return pos_set;
 }
 
-void Map::dfs(int x, int y, int thick, int mode) {
+void Map::dfs(std::default_random_engine &random_engine, int x, int y, int thick, int mode) {
     /**
      * mode == 0: horizontal
      * mode == 1: vertical
@@ -117,7 +117,7 @@ void Map::dfs(int x, int y, int thick, int mode) {
     if (mode) {
         int cur_x = x, cur_y = y;
         while (cur_x != x_b) {
-            int dir = std::rand() % 4;
+            auto dir = random_engine() % 4;
             switch (dir) {
                 case 0:
                     cur_x = std::max(cur_x - 1, x);
@@ -140,7 +140,7 @@ void Map::dfs(int x, int y, int thick, int mode) {
     } else {
         int cur_x = x, cur_y = y;
         while (cur_y != y_b) {
-            int dir = std::rand() % 4;
+            auto dir = random_engine() % 4;
             switch (dir) {
                 case 0:
                     cur_x = std::max(cur_x - 1, x);
@@ -165,10 +165,11 @@ void Map::dfs(int x, int y, int thick, int mode) {
 
 void Map::add_slots_passing(std::default_random_engine &random_engine, Position left_top,
                                              Position right_bottom, int thick) {
-    //TODO: add many slot-passing
+
     int x_top = left_top.x, y_top = left_top.y, x_bottom = right_bottom.x - thick, y_bottom = right_bottom.y - thick;
     int width = y_bottom - y_top, height = x_bottom - x_top;
-    int n_w = width / thick, n_h = height / thick;
+    int block = thick;
+    int n_w = width / block, n_h = height / block;
 
     int temp_x_top = x_top, temp_y_top = y_top;
     int temp_x_bottom = x_bottom, temp_y_bottom = y_bottom;
@@ -177,8 +178,8 @@ void Map::add_slots_passing(std::default_random_engine &random_engine, Position 
     for (int i = 0; i < n_w; i++) {
         temp_y_top += i * thick;
         temp_y_bottom -= i * thick;
-        dfs(temp_x_top, temp_y_top, 20, 1);
-        dfs(temp_x_bottom, temp_y_bottom, 20, 1);
+        dfs(random_engine, temp_x_top, temp_y_top, block, 1);
+        dfs(random_engine, temp_x_bottom, temp_y_bottom, block, 1);
     }
 
     temp_x_top = x_top, temp_y_top = y_top;
@@ -188,8 +189,8 @@ void Map::add_slots_passing(std::default_random_engine &random_engine, Position 
     for (int i = 0; i < n_h; i++) {
         temp_x_top += i * thick;
         temp_x_bottom -= i * thick;
-        dfs(temp_x_top, temp_y_top, 20, 0);
-        dfs(temp_x_bottom, temp_y_bottom, 20, 0);
+        dfs(random_engine, temp_x_top, temp_y_top, block, 0);
+        dfs(random_engine, temp_x_bottom, temp_y_bottom, block, 0);
     }
 }
 
@@ -248,12 +249,15 @@ int Map::add_wall(Position pos) {
 int Map::add_many_walls(std::vector<Position> pos_set) {
     auto num = pos_set.size();
 
-    for (auto i = 0; i < num; i++) {
+    for (auto i = 0; i < 1; i++) {
         PositionInteger pos_int = pos2int(pos_set[i]);
         if (slots[pos_int].slot_type == BLANK && slots[pos_int].occupier != nullptr)
-            return 1;
-        slots[pos_int].slot_type = OBSTACLE;
-        set_channel_id(pos_int, wall_channel_id);
+            continue;
+        // has some issues
+        std::cout << "Bug" << std::endl;
+//        std::cout << "Post_int" << pos_int << std::endl;
+//        slots[pos_int].slot_type = OBSTACLE;
+//        set_channel_id(pos_int, wall_channel_id);
     }
 
     return 0;

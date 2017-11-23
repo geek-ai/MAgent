@@ -189,6 +189,12 @@ class GridWorld(Environment):
             bind = np.array([x, y, width, height, dir], dtype=np.int32)
             _LIB.gridworld_add_agents(self.game, handle, 0,  b"fill", as_int32_c_array(bind),
                                       0, 0, 0)
+        elif method == "maze":
+            # TODO: implement maze add
+            x, y = kwargs["pos"][0], kwargs["pos"][1]
+            bind = np.array([x, y], dtype=np.int32)
+            _LIB.gridworld_add_agents(self.game, handle, 0, b"maze", as_int32_c_array(bind),
+                                      0, 0, 0)
         else:
             print("Unknown type of position")
             exit(-1)

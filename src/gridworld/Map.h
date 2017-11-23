@@ -107,7 +107,7 @@ private:
         channel_ids[pos] = id;
     }
 
-    void dfs(int x, int y, int thick, int mode);
+    void dfs(std::default_random_engine &random_engine, int x, int y, int thick, int mode);
 
     inline bool is_blank_area(int x, int y, int width, int height,  void *self = nullptr);
     inline void clear_area(int x, int y, int width, int height);
