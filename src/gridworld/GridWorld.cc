@@ -928,9 +928,9 @@ void GridWorld::render() {
     else {
         if (first_render) {
             first_render = false;
-            render_generator.gen_config(groups, map, width, height);
+            render_generator.gen_config(groups, width, height);
         }
-        render_generator.render_a_frame(groups);
+        render_generator.render_a_frame(groups, map);
     }
 }
 

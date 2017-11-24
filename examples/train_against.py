@@ -13,14 +13,13 @@ import numpy as np
 import magent
 from magent.builtin.rule_model import RandomActor
 
-leftID, rightID = 0, 1
+
 def generate_map(env, map_size, handles):
     width = height = map_size
     init_num = map_size * map_size * 0.04
 
     gap = 3
-    global leftID, rightID
-    leftID, rightID = rightID, leftID
+    leftID, rightID = 0, 1
 
     # add left square of agents
     n = init_num

@@ -9,7 +9,7 @@ import logging as log
 import numpy as np
 
 import magent
-from magent.builtin.mx_model import DeepQNetwork
+from magent.builtin.tf_model import DeepQNetwork
 
 
 def play_a_round(env, map_size, handles, models, print_every, train=True, render=False, eps=None):
