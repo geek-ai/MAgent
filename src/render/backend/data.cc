@@ -161,9 +161,15 @@ void Frame::releaseMemory() {
 }
 
 Buffer::~Buffer() {
-    delete[](frames);
-    frames = nullptr;
     maxSize = 0;
+    if (frames != nullptr) {
+        delete[](frames);
+        frames = nullptr;
+    }
+    if (obstacles != nullptr) {
+        delete[](obstacles);
+        obstacles = nullptr;
+    }
 }
 
 const Frame &Buffer::operator [](unsigned int id)const {
@@ -181,7 +187,7 @@ void Buffer::resize(unsigned int size) {
     maxSize = size;
 }
 
-Buffer::Buffer(unsigned int maxSize) : maxSize(maxSize), frames(new Frame [maxSize]) {
+Buffer::Buffer(unsigned int maxSize) : maxSize(maxSize), frames(new Frame [maxSize]), nObstacles(0), obstacles(nullptr) {
 
 }
 
@@ -193,12 +199,38 @@ void Buffer::load(std::istream &handle) {
     if (!handle) {
         throw RenderException("invalid handle of the map data file");
     }
+
+    std::string tmp;
+    if (!(handle >> tmp >> nObstacles)) {
+        throw RenderException("cannot read the number of obstacles in the data file");
+    }
+
+    if (tmp != "W") {
+        throw RenderException("invalid tag of walls");
+    }
+
+    if (obstacles != nullptr) {
+        delete[](obstacles);
+        obstacles = nullptr;
+    }
+    try {
+        obstacles = new Coordinate[nObstacles];
+        for (unsigned int i = 0; i < nObstacles; i++) {
+            if (!(handle >> obstacles[i].x >> obstacles[i].y)) {
+                throw RenderException("cannot read the information of the next obstacle in the data file");
+            }
+        }
+    } catch (const RenderException &e) {
+        delete[](obstacles);
+        obstacles = nullptr;
+        throw;
+    }
+
     nFrames = 0;
     while (!handle.eof()) {
         if (nFrames == maxSize) {
             resize(maxSize * 2);
         }
-        std::string tmp;
         if (!(handle >> tmp)) {
             break;
         }
@@ -207,6 +239,14 @@ void Buffer::load(std::istream &handle) {
         }
         frames[nFrames++].load(handle);
     }
+}
+
+const unsigned int &Buffer::getObstaclesNumber() const {
+    return nObstacles;
+}
+
+const Coordinate &Buffer::getObstacle(unsigned int id) const {
+    return obstacles[id];
 }
 
 void Config::load(std::istream &handle) {
@@ -226,36 +266,10 @@ void Config::load(std::istream &handle) {
         } else {
             throw RenderException("property height must be an UInt");
         }
-        if (root["static-file"].isString()) {
-            std::ifstream handleStaticReader(root["static-file"].asString());
-            if (!handleStaticReader) {
-                throw RenderException("invalid handle of the static map data file");
-            } else {
-                if (!(handleStaticReader >> nObstacles)) {
-                    throw RenderException("cannot read the number of obstacles in the static map data file");
-                }
-                if (obstacles != nullptr) {
-                    delete[](obstacles);
-                    obstacles = nullptr;
-                }
-                try {
-                    obstacles = new Coordinate[nObstacles];
-                    for (unsigned int i = 0; i < nObstacles; i++) {
-                        if (!(handleStaticReader >> obstacles[i].x >> obstacles[i].y)) {
-                            throw RenderException("cannot read the information of the next obstacle in the static map data file");
-                        }
-                    }
-                } catch (const RenderException &e) {
-                    delete[](obstacles);
-                    obstacles = nullptr;
-                    throw;
-                }
-                root.removeMember("static-file");
-            }
-            handleStaticReader.close();
-        } else {
-            throw RenderException("property height must be a String");
-        }
+        // if (root["static-file"].isString()) {
+        // } else {
+        //     throw RenderException("property height must be a String");
+        // }
         if (root["minimap-width"].isUInt()) {
             miniMAPWidth = root["minimap-width"].asUInt();
         } else {
@@ -367,19 +381,7 @@ void Config::load(std::istream &handle) {
     }
 }
 
-const unsigned int &Config::getObstaclesNumber() const {
-    return nObstacles;
-}
-
-const Coordinate &Config::getObstacle(unsigned int id) const {
-    return obstacles[id];
-}
-
 Config::~Config() {
-    if (obstacles != nullptr) {
-        delete[](obstacles);
-        obstacles = nullptr;
-    }
     if (styles != nullptr){
         delete[](styles);
         styles = nullptr;
@@ -403,7 +405,7 @@ const unsigned int &Config::getStylesNumber() const {
 }
 
 Config::Config()
-        : height(0), width(0), nObstacles(0), nStyles(0), obstacles(nullptr), styles(nullptr){
+        : height(0), width(0), nStyles(0), styles(nullptr){
 
 }
 

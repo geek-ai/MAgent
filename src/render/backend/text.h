@@ -22,6 +22,7 @@ public:
 
     std::string encode(const render::Frame & /*unused*/,
                        const render::Config & /*unused*/,
+                       const render::Buffer & /*unused*/,
                        const render::Window & /*unused*/)const override;
 
     std::string encodeError(const std::string & /*unused*/)const override;
