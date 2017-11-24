@@ -1,4 +1,4 @@
-"""one million test"""
+"""test one million random agents"""
 
 import time
 
@@ -50,7 +50,7 @@ def measure_time(msg, func, *args, **kwargs):
     return ret
 
 if __name__ == "__main__":
-    n_step = 5
+    n_step = 10
 
     # init the game "forest" (or "battle" here)
     env = gw.GridWorld(load_forest())
@@ -100,3 +100,4 @@ if __name__ == "__main__":
         if done:
             print("game over")
             break
+
