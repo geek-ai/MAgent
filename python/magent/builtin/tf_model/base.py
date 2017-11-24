@@ -7,12 +7,29 @@ from magent.model import BaseModel
 class TFBaseModel(BaseModel):
     """base model for tensorflow model"""
     def __init__(self, env, handle, name, subclass_name):
+        """init a model
+
+        Parameters
+        ----------
+        env: magent.Environment
+        handle: handle (ctypes.c_int32)
+        name: str
+        subclass_name: str
+            name of subclass
+        """
         BaseModel.__init__(self, env, handle)
         self.name = name
         self.subclass_name = subclass_name
 
     def save(self, dir_name, epoch):
-        """save model to dir"""
+        """save model to dir
+
+        Parameters
+        ----------
+        dir_name: str
+            name of the directory
+        epoch: int
+        """
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
         dir_name = os.path.join(dir_name, self.name)
@@ -23,7 +40,14 @@ class TFBaseModel(BaseModel):
         saver.save(self.sess, os.path.join(dir_name, (self.subclass_name + "_%d") % epoch))
 
     def load(self, dir_name, epoch=0, name=None):
-        """load model from dir"""
+        """save model to dir
+
+        Parameters
+        ----------
+        dir_name: str
+            name of the directory
+        epoch: int
+        """
         if name is None or name == self.name:  # the name of saved model is the same as ours
             dir_name = os.path.join(dir_name, self.name)
             model_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, self.name)

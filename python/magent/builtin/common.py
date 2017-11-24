@@ -1,4 +1,5 @@
 """Replay buffer for deep q network"""
+
 import numpy as np
 
 
@@ -10,6 +11,13 @@ class ReplayBuffer:
         self.capacity   = len(self.buffer)
 
     def put(self, data):
+        """put data to
+
+        Parameters
+        ----------
+        data: numpy array
+            data to add
+        """
         head = self.head
         n = len(data)
         if head + n <= self.capacity:
@@ -23,7 +31,15 @@ class ReplayBuffer:
         return n
 
     def get(self, index):
+        """get items
+
+        Parameters
+        ----------
+        index: int or numpy array
+            it can be any numpy supported index
+        """
         return self.buffer[index]
 
     def clear(self):
+        """clear replay buffer"""
         self.head = 0

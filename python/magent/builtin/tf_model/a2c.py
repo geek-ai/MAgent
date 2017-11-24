@@ -10,8 +10,37 @@ from .base import TFBaseModel
 class AdvantageActorCritic(TFBaseModel):
     def __init__(self, env, handle, name, learning_rate=1e-3,
                  batch_size=64, reward_decay=0.99, eval_obs=None,
-                 train_freq=1, ent_coef=0.08, value_coef=0.1, use_comm=False,
+                 train_freq=1, value_coef=0.1, ent_coef=0.08, use_comm=False,
                  custom_view_space=None, custom_feature_space=None):
+        """init a model
+
+        Parameters
+        ----------
+        env: Environment
+            environment
+        handle: Handle (ctypes.c_int32)
+            handle of this group, can be got by env.get_handles
+        name: str
+            name of this model
+        learning_rate: float
+        batch_size: int
+        reward_decay: float
+            reward_decay in TD
+        eval_obs: numpy array
+            evaluation set of observation
+        train_freq: int
+            mean training times of a sample
+        ent_coef: float
+            weight of entropy loss in total loss
+        value_coef: float
+            weight of value loss in total loss
+        use_comm: bool
+            whether use CommNet
+        custom_feature_space: tuple
+            customized feature space
+        custom_view_space: tuple
+            customized feature space
+        """
         TFBaseModel.__init__(self, env, handle, name, "tfa2c")
         # ======================== set config  ========================
         self.env = env
@@ -49,6 +78,19 @@ class AdvantageActorCritic(TFBaseModel):
         self.reward_buf = np.empty(1, dtype=np.float32)
 
     def _commnet_block(self, n, hidden, skip, name, hidden_size):
+        """a block of CommNet
+
+        Parameters
+        ----------
+        n: int
+            number of agent
+        hidden: tf.tensor
+            hidden layer input
+        skip: tf.tensor
+            skip connection
+        name: str
+        hidden_size: int
+        """
         mask = (tf.ones((n, n)) - tf.eye(n))
         mask *= tf.where(n > 1, 1.0 / (tf.cast(n, tf.float32) - 1.0), 0)
 
@@ -60,7 +102,21 @@ class AdvantageActorCritic(TFBaseModel):
         return tf.tanh(tf.matmul(message, C) + tf.matmul(hidden, H) + skip)
 
     def _commnet(self, n, dense, hidden_size, n_step=2):
-        """ CommNet Learning Multiagent Communication with Backpropagation by S. Sukhbaatar et al. NIPS 2016"""
+        """ CommNet Learning Multiagent Communication with Backpropagation by S. Sukhbaatar et al. NIPS 2016
+
+        Parameters
+        ----------
+        n: int
+            number of agent
+        hidden_size: int
+        n_step: int
+            communication step
+
+        Returns
+        -------
+        h: tf.tensor
+            hidden units after CommNet
+        """
         skip = dense
 
         h = dense
@@ -70,6 +126,14 @@ class AdvantageActorCritic(TFBaseModel):
         return h
 
     def _create_network(self, view_space, feature_space):
+        """define computation graph of network
+
+        Parameters
+        ----------
+        view_space: tuple
+        feature_space: tuple
+            the input shape
+        """
         # input
         input_view    = tf.placeholder(tf.float32, (None,) + view_space)
         input_feature = tf.placeholder(tf.float32, (None,) + feature_space)
@@ -127,6 +191,20 @@ class AdvantageActorCritic(TFBaseModel):
         self.total_loss = total_loss
 
     def infer_action(self, raw_obs, ids, *args, **kwargs):
+        """infer action for a batch of agents
+
+        Parameters
+        ----------
+        raw_obs: tuple(numpy array, numpy array)
+            raw observation of agents tuple(views, features)
+        ids: numpy array
+            ids of agents
+
+        Returns
+        -------
+        acts: numpy array of int32
+            actions for agents
+        """
         view, feature = raw_obs[0], raw_obs[1]
         n = len(view)
 
@@ -141,13 +219,21 @@ class AdvantageActorCritic(TFBaseModel):
 
         return ret
 
-    def _discount(self, data, gamma):
-        keep = 0
-        for i in reversed(range(len(data))):
-            keep = keep * gamma + data[i]
-            data[i] = keep
-
     def train(self, sample_buffer, print_every=1000):
+        """feed new data sample and train
+
+        Parameters
+        ----------
+        sample_buffer: magent.utility.EpisodesBuffer
+            buffer contains samples
+
+        Returns
+        -------
+        loss: list
+            policy gradient loss, critic loss, entropy loss
+        value: float
+            estimated state value
+        """
         # calc buffer size
         n = 0
         for episode in sample_buffer.episodes():
@@ -200,4 +286,10 @@ class AdvantageActorCritic(TFBaseModel):
         return [pg_loss, vf_loss, ent_loss], np.mean(state_value)
 
     def get_info(self):
+        """get information of the model
+
+        Returns
+        -------
+        info: string
+        """
         return "a2c train_time: %d" % (self.train_ct)
