@@ -1,26 +1,35 @@
-# MAgent
-MAgent is a platform aimed at many-agent reinforcement learning. 
+MAgent
+==============================================
+
+[![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/emersion/stability-badges#experimental)
+
+
+MAgent is a platform aimed at many-agent reinforcement learning.
 Unlike previous research platforms on single or multi-agent reinforcement learning, 
 MAgent focuses on supporting the tasks and the applications that require hundreds to millions of agents.
 [see video](https://www.youtube.com/watch?v=HCSm0kVolqI)
 
-# Requirement
-MAgent currently support Linux and OS X running Python 2.7 or python 3
+## Requirement
+MAgent currently support Linux and OS X running Python 2.7 or python 3.
 We make no assumptions about the structure of your agents.
-You can write rule-based algorithm or use deep learning framework such as Tensorflow, MXNet, PyTorch.
+You can write rule-based algorithms or use deep learning frameworks such as Tensorflow, MXNet, PyTorch.
 
-# Install on linux
+## Install on Linux
 
 ```bash
 git clone git@bitbucket.org:geek-ai/magent.git
+cd MAgent
 
 sudo apt-get install cmake libboost-system-dev libjsoncpp-dev libwebsocketpp-dev
+
 bash build.sh
+export PYTHONPATH=$(pwd)/python:$PYTHONPATH
 ```
 
-# Install on OSX
+## Install on OSX
 ```bash
 git clone git@bitbucket.org:geek-ai/magent.git
+cd MAgent
 
 brew install cmake llvm
 brew install boost
@@ -29,11 +38,16 @@ brew install jsoncpp websocketpp
 brew install argp-standalone
 
 bash build.sh
+export PYTHONPATH=$(pwd)/python:$PYTHONPATH
 ```
 
+## Docs
+[Get started](/doc/get_started.md)
+
+
 ## Examples
-Examples need at least 16GB memory to run
-The training time of following tasks is at most 1 day on GTX1080-Ti
+The training time of following tasks is at most 1 day on a GTX1080-Ti card.
+If you meet out-of-memory error, you can tune the map_size smaller or tune infer_batch_size smaller in models.
 
 * **pursuit**
 

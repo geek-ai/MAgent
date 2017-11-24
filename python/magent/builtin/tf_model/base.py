@@ -22,7 +22,7 @@ class TFBaseModel(BaseModel):
         saver = tf.train.Saver(model_vars)
         saver.save(self.sess, os.path.join(dir_name, (self.subclass_name + "_%d") % epoch))
 
-    def load(self, dir_name, epoch, name=None):
+    def load(self, dir_name, epoch=0, name=None):
         """load model from dir"""
         if name is None or name == self.name:  # the name of saved model is the same as ours
             dir_name = os.path.join(dir_name, self.name)

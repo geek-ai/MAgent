@@ -2,6 +2,7 @@
 
 import magent
 
+
 def get_config(map_size):
     gw = magent.gridworld
 
@@ -29,6 +30,5 @@ def get_config(map_size):
 
     deer_group  = cfg.add_group(deer)
     tiger_group = cfg.add_group(tiger)
-
 
     return cfg

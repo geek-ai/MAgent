@@ -8,11 +8,12 @@ import importlib
 
 import numpy as np
 
-from .base import _LIB, as_float_c_array, as_int32_c_array
+from .c_lib import _LIB, as_float_c_array, as_int32_c_array
 from .environment import Environment
 
 
 class DiscreteSnake(Environment):
+    """deprecated"""
     OBS_VIEW_INDEX = 0
     OBS_FEATURE_INDEX = 1
 

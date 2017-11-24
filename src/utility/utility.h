@@ -102,7 +102,7 @@ private:
 #define LOG_TRACE   if (!LOG_TRACE_ENABLE) ; else magent::utility::Logger<>(nullptr, 0)
 #define LOG_FATAL   magent::utility::Logger<true>(__FILE__, __LINE__)
 #define LOG_ERROR   magent::utility::Logger<>(__FILE__, __LINE__)
-#define LOG_WARNING if (!LOG_TRACE_ENABLE) ; else magent::utility::Logger<>(__FILE__, __LINE__)
+#define LOG_WARNING if (!LOG_WARNING_ENABLE) ; else magent::utility::Logger<>(__FILE__, __LINE__)
 
 } // namespace utility
 } // namespace magent
