@@ -114,9 +114,6 @@ if __name__ == "__main__":
     parser.add_argument('--alg', default='dqn', choices=['dqn', 'drqn', 'a2c'])
     args = parser.parse_args()
 
-    if args.alg == 'a2c':
-        args.map_size = 500
-
     # init the game
     env = magent.GridWorld("double_attack", map_size=args.map_size)
     env.set_render_dir("build/render")
@@ -146,7 +143,7 @@ if __name__ == "__main__":
         step_batch_size = None
     elif args.alg == 'a2c':
         from magent.builtin.tf_model import AdvantageActorCritic
-        step_batch_size = 10 * 2500
+        step_batch_size = int(10 * args.map_size * args.map_size*0.01)
         models.append(AdvantageActorCritic(env, tiger_handle, "tiger",
                                    batch_size=step_batch_size,
                                    learning_rate=1e-2))

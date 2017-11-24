@@ -1,9 +1,12 @@
+"""do search task"""
+
 import os
 import sys
 import argparse
 import time
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 
 def do_task(task_item):
     recorder = open(task_item["name"] + "-rec.out", "w")

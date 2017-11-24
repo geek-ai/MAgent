@@ -13,7 +13,7 @@ class DeepQNetwork(MXBaseModel):
                  batch_size=64, reward_decay=0.99, learning_rate=1e-4,
                  train_freq=1, target_update=2000, memory_size=2 ** 20, eval_obs=None,
                  use_dueling=True, use_double=True,
-                 custom_view_space=None, custom_feature_space=None, num_gpu=2):
+                 custom_view_space=None, custom_feature_space=None, num_gpu=1):
         MXBaseModel.__init__(self, env, handle, name, "mxdqn")
         # ======================== set config  ========================
         self.env = env
@@ -254,8 +254,8 @@ class DeepQNetwork(MXBaseModel):
                                            mx.nd.array(batch_mask)])
             self.model.forward(batch, is_train=True)
             self.model.backward()
-            loss = np.mean(self.model.get_outputs()[1].asnumpy())
             self.model.update()
+            loss = np.mean(self.model.get_outputs()[1].asnumpy())
             total_loss += loss
 
             if ct % self.target_update == 0:
