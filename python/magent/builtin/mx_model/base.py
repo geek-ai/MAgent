@@ -12,13 +12,14 @@ class MXBaseModel(BaseModel):
         self.subclass_name = subclass_name
 
     def _get_ctx(self):
-        """check whether has a gpu"""
+        """return correct context , priority: gpu > cpu"""
         if has_gpu():
             return mx.gpu()
         else:
             return mx.cpu()
 
     def save(self, dir_name, epoch):
+        """ save model """
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
         dir_name = os.path.join(dir_name, self.name, )
@@ -27,7 +28,8 @@ class MXBaseModel(BaseModel):
         pre = os.path.join(dir_name, self.subclass_name)
         self.model.save_checkpoint(pre, epoch, save_optimizer_states=True)
 
-    def load(self, dir_name, epoch):
+    def load(self, dir_name, epoch=0):
+        """ load model """
         dir_name = os.path.join(dir_name, self.name)
         pre = os.path.join(dir_name, self.subclass_name)
         _, arg_params, aux_params = mx.model.load_checkpoint(pre, epoch)

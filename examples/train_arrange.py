@@ -1,5 +1,5 @@
 """
-train agents to deploy
+train agents to arrange themselves into a specific message
 """
 
 import argparse
@@ -112,13 +112,13 @@ def generate_map(env, map_size, goal_handle, handles):
     # agent
     pos = []
 
-    add_square(pos, map_size * 0.9, 3)
-    add_square(pos, map_size * 0.8, 3)
-    add_square(pos, map_size * 0.7, 3)
+    add_square(pos, map_size * 0.9, 2)
+    add_square(pos, map_size * 0.8, 2)
+    add_square(pos, map_size * 0.7, 2)
     add_square(pos, map_size * 0.65, 2)
 
     pos = np.array(pos)
-    pos = pos[np.random.choice(np.arange(len(pos)), int(circle_goal_num + alpha_goal_num * 1.2), replace=False)]
+    pos = pos[np.random.choice(np.arange(len(pos)), int(circle_goal_num + alpha_goal_num * 1.1), replace=False)]
 
     env.add_agents(handles[0], method="custom", pos=pos)
 

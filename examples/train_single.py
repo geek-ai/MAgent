@@ -151,7 +151,7 @@ if __name__ == "__main__":
         eval_obs = magent.utility.sample_observation(env, handles, 2048, 500)[0]
 
     # init models
-    batch_size = 256
+    batch_size = 512
     unroll_step = 8
     target_update = 1200
     train_freq = 5
@@ -160,12 +160,12 @@ if __name__ == "__main__":
     if args.alg == 'dqn':
         models.append(DeepQNetwork(env, handles[0], "battle",
                                    batch_size=batch_size,
-                                   learning_rate=2e-4,
+                                   learning_rate=3e-4,
                                    memory_size=2 ** 21, target_update=target_update,
                                    train_freq=train_freq, eval_obs=eval_obs))
     elif args.alg == 'drqn':
         models.append(DeepRecurrentQNetwork(env, handles[0], "battle",
-                                   learning_rate=2e-4,
+                                   learning_rate=3e-4,
                                    batch_size=batch_size/unroll_step, unroll_step=unroll_step,
                                    memory_size=2 * 8 * 625, target_update=target_update,
                                    train_freq=train_freq, eval_obs=eval_obs))

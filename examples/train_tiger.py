@@ -135,7 +135,7 @@ if __name__ == "__main__":
     if args.alg == 'dqn':
         from magent.builtin.tf_model import DeepQNetwork
         models.append(DeepQNetwork(env, tiger_handle, "tiger",
-                                   batch_size=batch_size, network_type=1,
+                                   batch_size=batch_size,
                                    memory_size=2 ** 20, learning_rate=4e-4))
         step_batch_size = None
     elif args.alg == 'drqn':
