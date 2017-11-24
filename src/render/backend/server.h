@@ -49,7 +49,7 @@ private:
 
 protected:
     void pick(int frame, const render::Window & window) {
-        S::reply(protocol.encode(buffer[frame], config, window));
+        S::reply(protocol.encode(buffer[frame], config, buffer, window));
     }
 
     void load(const std::string & conf_path, const std::string & data_path) {

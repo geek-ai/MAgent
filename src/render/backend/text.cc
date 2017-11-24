@@ -65,8 +65,9 @@ Result Text::decode(const std::string &data)const {
 }
 
 std::string Text::encode(const magent::render::Frame &frame,
-                                           const magent::render::Config &config,
-                                           const magent::render::Window &window)const {
+                         const magent::render::Config &config,
+                         const magent::render::Buffer &buffer,
+                         const magent::render::Window &window)const {
     std::string result("f");
     std::unordered_map<int, bool> hasEvent;
     for (unsigned int i = 0, size = frame.getEventsNumber(), first = 1; i < size; i++) {
@@ -126,8 +127,8 @@ std::string Text::encode(const magent::render::Frame &frame,
     }
     result.append(";");
 
-    for (unsigned int i = 0, size = config.getObstaclesNumber(), first = 1; i < size; i++) {
-        const render::Coordinate &now = config.getObstacle(i);
+    for (unsigned int i = 0, size = buffer.getObstaclesNumber(), first = 1; i < size; i++) {
+        const render::Coordinate &now = buffer.getObstacle(i);
         if (window.accept(now.x, now.y)) {
             if (first == 0u) result.append("|");
             result.append(std::to_string(now.x));

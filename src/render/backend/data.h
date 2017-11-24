@@ -79,8 +79,9 @@ struct Style {
 
 class Buffer : public render::Unique {
 private:
-    unsigned int nFrames, maxSize;
+    unsigned int nFrames, maxSize, nObstacles;
     Frame * frames;
+    Coordinate * obstacles;
 
     void resize(unsigned int size);
 
@@ -94,12 +95,16 @@ public:
     ~Buffer() override;
 
     const unsigned int & getFramesNumber()const;
+
+    const unsigned int & getObstaclesNumber()const;
+
+    const Coordinate & getObstacle(unsigned int id)const;
+
 };
 
 class Config : public render::Unique {
 private:
-    unsigned int height, width, miniMAPHeight, miniMAPWidth, nObstacles, nStyles;
-    Coordinate * obstacles;
+    unsigned int height, width, miniMAPHeight, miniMAPWidth, nStyles;
     Style * styles;
     std::string frontendJSON;
     std::string dataPath;
@@ -116,10 +121,6 @@ public:
     const unsigned int & getHeight()const;
 
     const unsigned int & getWidth()const;
-
-    const unsigned int & getObstaclesNumber()const;
-
-    const Coordinate & getObstacle(unsigned int id)const;
 
     const unsigned int & getStylesNumber()const;
 

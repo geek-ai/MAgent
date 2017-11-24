@@ -30,7 +30,8 @@ private:
 
 public:
 
-    virtual T encode(const render::Frame &, const render::Config &, const render::Window &)const = 0;
+    virtual T encode(const render::Frame &, const render::Config &,
+                     const render::Buffer &, const render::Window &)const = 0;
 
     virtual T encodeError(const T &)const = 0;
 
