@@ -144,14 +144,8 @@ if __name__ == "__main__":
     parser.add_argument("--greedy", action="store_true")
     parser.add_argument("--name", type=str, default="against")
     parser.add_argument("--eval", action="store_true")
-    parser.add_argument("--mean", action="store_true")
     parser.add_argument("--opponent", type=int, default=1)
     parser.add_argument('--alg', default='dqn', choices=['dqn', 'drqn', 'a2c'])
-
-    # tuning now
-    parser.add_argument("--network_type", type=int, default=0)
-    parser.add_argument("--ent_coef", type=float, default=0.08)
-    parser.add_argument("--value_coef", type=float, default=0.1)
 
     args = parser.parse_args()
 
