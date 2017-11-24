@@ -1,3 +1,5 @@
+"""advantage actor critic"""
+
 import os
 import time
 
@@ -13,6 +15,33 @@ class AdvantageActorCritic(MXBaseModel):
                  train_freq=1, value_coef=0.1, ent_coef=0.1,
                  custom_view_space=None, custom_feature_space=None,
                  *args, **kwargs):
+        """init a model
+
+        Parameters
+        ----------
+        env: Environment
+            environment
+        handle: Handle (ctypes.c_int32)
+            handle of this group, can be got by env.get_handles
+        name: str
+            name of this model
+        learning_rate: float
+        batch_size: int
+        reward_decay: float
+            reward_decay in TD
+        eval_obs: numpy array
+            evaluation set of observation
+        train_freq: int
+            mean training times of a sample
+        ent_coef: float
+            weight of entropy loss in total loss
+        value_coef: float
+            weight of value loss in total loss
+        custom_feature_space: tuple
+            customized feature space
+        custom_view_space: tuple
+            customized feature space
+        """
         MXBaseModel.__init__(self, env, handle, name, "mxa2c")
         # ======================== set config  ========================
         self.env = env
@@ -74,6 +103,14 @@ class AdvantageActorCritic(MXBaseModel):
         # mx.viz.plot_network(self.output).view()
 
     def _create_network(self, input_view, input_feature):
+        """define computation graph of network
+
+        Parameters
+        ----------
+        view_space: tuple
+        feature_space: tuple
+            the input shape
+        """
         kernel_num = [32, 32]
         hidden_size = [256]
 
@@ -106,6 +143,20 @@ class AdvantageActorCritic(MXBaseModel):
         return policy, value
 
     def infer_action(self, raw_obs, ids, policy="e_greedy", eps=0):
+        """infer action for a batch of agents
+
+        Parameters
+        ----------
+        raw_obs: tuple(numpy array, numpy array)
+            raw observation of agents tuple(views, features)
+        ids: numpy array
+            ids of agents
+
+        Returns
+        -------
+        acts: numpy array of int32
+            actions for agents
+        """
         view, feature = raw_obs[0], raw_obs[1]
         n = len(view)
 
@@ -121,6 +172,20 @@ class AdvantageActorCritic(MXBaseModel):
         return ret
 
     def train(self, sample_buffer, print_every=1000):
+        """feed new data sample and train
+
+        Parameters
+        ----------
+        sample_buffer: magent.utility.EpisodesBuffer
+            buffer contains samples
+
+        Returns
+        -------
+        loss: list
+            policy gradient loss, critic loss, entropy loss
+        value: float
+            estimated state value
+        """
         # calc buffer size
         n = 0
         for episode in sample_buffer.episodes():
@@ -205,6 +270,13 @@ class AdvantageActorCritic(MXBaseModel):
         return [pg_loss, value_loss, entropy_loss], value
 
     def _reset_bind_size(self, new_size):
+        """reset input shape of the model
+
+        Parameters
+        ----------
+        new_size: int
+            new batch size
+        """
         if self.bind_size == new_size:
             return
         else:
@@ -216,4 +288,10 @@ class AdvantageActorCritic(MXBaseModel):
             )
 
     def get_info(self):
+        """get information of the model
+
+        Returns
+        -------
+        info: string
+        """
         return "mx dqn train_time: %d" % (self.train_ct)

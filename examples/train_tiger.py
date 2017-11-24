@@ -1,5 +1,5 @@
 """
-double attack, the training scheme of api_demo.py
+double attack, tigers get reward when they attack a same deer
 """
 
 import argparse

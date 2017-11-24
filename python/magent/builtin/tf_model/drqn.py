@@ -16,6 +16,37 @@ class DeepRecurrentQNetwork(TFBaseModel):
                  train_freq=1, memory_size=20000, target_update=2000, eval_obs=None,
                  use_dueling=True, use_double=True, use_episode_train=False,
                  custom_view_space=None, custom_feature_space=None):
+        """init a model
+
+        Parameters
+        ----------
+        env: Environment
+            environment
+        handle: Handle (ctypes.c_int32)
+            handle of this group, can be got by env.get_handles
+        name: str
+            name of this model
+        learning_rate: float
+        batch_size: int
+        reward_decay: float
+            reward_decay in TD
+        train_freq: int
+            mean training times of a sample
+        target_update: int
+            target will update every target_update batches
+        memory_size: int
+            weight of entropy loss in total loss
+        eval_obs: numpy array
+            evaluation set of observation
+        use_dueling: bool
+            whether use dueling q network
+        use_double: bool
+            whether use double q network
+        custom_feature_space: tuple
+            customized feature space
+        custom_view_space: tuple
+            customized feature space
+        """
         TFBaseModel.__init__(self, env, handle, name, "tfdrqn")
         # ======================== set config  ========================
         self.env = env
@@ -107,6 +138,14 @@ class DeepRecurrentQNetwork(TFBaseModel):
         self.terminal_buf = np.empty(1, dtype=np.bool)
 
     def _create_network(self, input_view, input_feature, reuse=None):
+        """define computation graph of network
+
+        Parameters
+        ----------
+        input_view: tf.tensor
+        input_feature: tf.tensor
+            the input tensor
+        """
         kernel_num  = [32, 32]
         hidden_size = [256]
 
@@ -148,6 +187,7 @@ class DeepRecurrentQNetwork(TFBaseModel):
         return qvalues, state_in, rnn_state
 
     def _get_agent_states(self, ids):
+        """get hidden state of agents"""
         n = len(ids)
         states = np.empty([n, self.state_size])
         default = np.zeros([self.state_size])
@@ -156,12 +196,31 @@ class DeepRecurrentQNetwork(TFBaseModel):
         return states
 
     def _set_agent_states(self, ids, states):
+        """set hidden state for agents"""
         if len(ids) <= len(self.agent_states) * 0.5:
             self.agent_states = {}
         for i in range(len(ids)):
             self.agent_states[ids[i]] = states[i]
 
     def infer_action(self, raw_obs, ids, policy='e_greedy', eps=0):
+        """infer action for a batch of agents
+
+        Parameters
+        ----------
+        raw_obs: tuple(numpy array, numpy array)
+            raw observation of agents tuple(views, features)
+        ids: numpy array
+            ids of agents
+        policy: str
+            can be eps-greedy or greedy
+        eps: float
+            used when policy is eps-greedy
+
+        Returns
+        -------
+        acts: numpy array of int32
+            actions for agents
+        """
         view, feature = raw_obs[0], raw_obs[1]
         n = len(ids)
 
@@ -186,6 +245,7 @@ class DeepRecurrentQNetwork(TFBaseModel):
         return ret.astype(np.int32)
 
     def _calc_target(self, next_view, next_feature, rewards, terminal, batch_size, unroll_step):
+        """calculate target value"""
         n = len(rewards)
         if self.use_double:
             t_qvalues, qvalues = self.sess.run([self.target_qvalues, self.qvalues], feed_dict={
@@ -217,6 +277,7 @@ class DeepRecurrentQNetwork(TFBaseModel):
         return target
 
     def _add_to_replay_buffer(self, sample_buffer):
+        """add samples in sample_buffer to replay buffer"""
         n = 0
         for episode in sample_buffer.episodes():
             v, f, a, r = episode.views, episode.features, episode.actions, episode.rewards
@@ -238,7 +299,23 @@ class DeepRecurrentQNetwork(TFBaseModel):
         return n
 
     def train(self, sample_buffer, print_every=500):
-        """do not keep hidden state (split episode into short sequences)"""
+        """ add new samples in sample_buffer to replay buffer and train
+        do not keep hidden state (split episode into short sequences)
+
+        Parameters
+        ----------
+        sample_buffer: magent.utility.EpisodesBuffer
+            buffer contains samples
+        print_every: int
+            print log every print_every batches
+
+        Returns
+        -------
+        loss: float
+            bellman residual loss
+        value: float
+            estimated state value
+        """
         add_num = self._add_to_replay_buffer(sample_buffer)
 
         batch_size = self.batch_size
@@ -325,8 +402,26 @@ class DeepRecurrentQNetwork(TFBaseModel):
         return total_loss / ct if ct != 0 else 0, self._eval(target)
 
     def train_keep_hidden(self, sample_buffer, print_every=500):
-        # keep hidden state (split episode into small sequence, but keep hidden states)
-        # this means must train some episodes continuously not fully random
+        """ add new samples in sample_buffer to replay buffer and train
+            keep hidden state (split episode into small sequence, but keep hidden states)
+            this means must train some episodes continuously not fully random.
+            to use this training scheme, you should also modify self._calc_target
+
+        Parameters
+        ----------
+        sample_buffer: magent.utility.EpisodesBuffer
+            buffer contains samples
+        print_every: int
+            print log every print_every batches
+
+        Returns
+        -------
+        loss: float
+            bellman residual loss
+        value: float
+            estimated state value
+        """
+
         add_num = self._add_to_replay_buffer(sample_buffer)
    
         batch_size = self.batch_size
@@ -337,7 +432,7 @@ class DeepRecurrentQNetwork(TFBaseModel):
         replay_lens_sum = np.sum(self.replay_buffer_lens)
         weight = np.array(self.replay_buffer_lens, dtype=np.float32) / replay_lens_sum
    
-        max_len  = self.div_round(np.max(self.replay_buffer_lens), unroll_step)
+        max_len  = self._div_round(np.max(self.replay_buffer_lens), unroll_step)
         n_batches = self.train_freq * add_num / (batch_size * unroll_step)
         if n_batches == 0:
             return 0, 0
@@ -369,7 +464,7 @@ class DeepRecurrentQNetwork(TFBaseModel):
             # collect length and sort
             for j, index in enumerate(indexs):
                 length = replay_buffer[index][-1]
-                length = self.div_round(length, unroll_step)
+                length = self._div_round(length, unroll_step)
                 train_length = max(train_length, length)
                 to_sort.append([index, length])
             to_sort.sort(key=lambda x: -x[1])
@@ -410,7 +505,7 @@ class DeepRecurrentQNetwork(TFBaseModel):
                     batch_terminal[beg:beg+x] = terminal
                     batch_mask[beg:beg+x] = mask
 
-                    beg += self.div_round(x, unroll_step)
+                    beg += self._div_round(x, unroll_step)
 
             # train steps
             for j in range((train_length + unroll_step - 1) / unroll_step):
@@ -464,127 +559,13 @@ class DeepRecurrentQNetwork(TFBaseModel):
 
         return round(total_loss / ct if ct != 0 else 0, 6), self._eval(batch_target)
 
-    def train_old(self, sample_buffer, print_every=500):
-        """ do not keep hidden state (split episode into short sequences)
-            flatten replay buffer, so need to much memory
-         """
-        add_num = self._add_to_replay_buffer(sample_buffer)
-
-        batch_size = self.batch_size
-        unroll_step = self.unroll_step
-        pad_before_len = self.pad_before_len
-
-        # calc buffer size (flatten the whole replay buffer)
-        n = n_head = 0
-        pad = 1  # 1 is for padding the last frame
-        for item in self.replay_buffer:
-            reward, ter = item[3], item[4][-1]
-            n += len(reward)
-            pad += pad_before_len
-            n_head += pad_before_len + len(reward) - (unroll_step - 1)
-            if not ter:
-                n_head -= 1
-
-        # resize to the new size
-        self.view_buf.resize((n + pad,) + self.view_space)
-        self.feature_buf.resize((n + pad,) + self.feature_space)
-        self.action_buf.resize(n + pad)
-        self.reward_buf.resize(n + pad)
-        self.terminal_buf.resize(n + pad)
-        view, feature = self.view_buf, self.feature_buf
-        action, reward = self.action_buf, self.reward_buf
-        terminal = self.terminal_buf
-
-        head = np.empty(n_head, dtype=np.int)
-        ct = p_head = 0
-
-        # collect episodes from multiple separate buffers to a continuous buffer
-        for item in self.replay_buffer:
-            v, f, a, r, t = item[0], item[1], item[2], item[3], item[4][-1]
-            m = len(r)
-
-            # pad before
-            if pad_before_len != 0:
-                view[ct:ct + pad_before_len] = np.zeros_like(view[0:pad_before_len])
-                feature[ct:ct + pad_before_len] = np.zeros_like(feature[0:pad_before_len])
-                action[ct:ct + pad_before_len] = np.zeros_like(action[0:pad_before_len])
-                reward[ct:ct + pad_before_len] = np.zeros_like(reward[0:pad_before_len])
-                terminal[ct:ct + pad_before_len] = np.ones_like(terminal[0:pad_before_len])
-
-            ct_beg = ct + pad_before_len
-            view[ct_beg:ct_beg+m] = v
-            feature[ct_beg:ct_beg+m] = f
-            action[ct_beg:ct_beg+m]  = a
-            reward[ct_beg:ct_beg+m]  = r
-            terminal[ct_beg:ct_beg+m] = False
-
-            if t:
-                add_head = m + pad_before_len - (unroll_step - 1)
-                terminal[ct_beg+m-1] = True
-            else:  # if it is not terminal, then the last frame is only for calculating target, not for training
-                add_head = m + pad_before_len - (unroll_step - 1) - 1
-
-            head[p_head:p_head+add_head] = np.arange(ct, ct + add_head)
-            p_head += add_head
-            ct += m + pad_before_len
-
-        assert ct == n + pad - 1 and p_head == n_head
-
-        # for shuffle
-        np.random.shuffle(head)
-        pick = np.empty(batch_size * unroll_step, dtype=np.int32)
-
-        # calc batch number
-        n_batches = int(self.train_freq * add_num / (batch_size * (unroll_step - self.skip_error)))
-        print("batches: %d  add: %d  replay_len: %d/%d" %
-              (n_batches, add_num, len(self.replay_buffer), self.memory_size))
-
-        ct = pt = 0
-        total_loss = 0
-        start_time = time.time()
-
-        # train batches
-        for i in range(n_batches):
-            head_batch = head[pt:pt + batch_size]
-            for j, start in enumerate(head_batch):
-                pick[j * unroll_step:(j+1) * unroll_step] = np.arange(start, start + unroll_step)
-
-            assert max(pick)+1 < len(view)
-            # collect trajectories from different IDs to a single buffer
-            target = self._calc_target(view[pick+1], feature[pick+1],
-                                       reward[pick], terminal[pick], batch_size, unroll_step)
-            ret = self.sess.run([self.train_op, self.loss], feed_dict={
-                self.input_view:      view[pick],
-                self.input_feature:   feature[pick],
-                self.action:          action[pick],
-                self.target:          target,
-                self.batch_size_ph:   batch_size,
-                self.unroll_step_ph:  unroll_step,
-            })
-            loss = ret[1]
-            total_loss += loss
-
-            if ct % self.target_update == 0:
-                self.sess.run(self.update_target_op)
-
-            if ct % print_every == 0:
-                print("batch %5d, loss %.6f, qvalue %.6f" % (ct, loss, self._eval(target)))
-            ct += 1
-            pt = (pt + batch_size) % n_head
-            self.train_ct += 1
-
-        total_time = time.time() - start_time
-        step_average = total_time / max(1.0, (ct / 1000.0))
-        print("batches: %d,  total time: %.2f,  1k average: %.2f" % (ct, total_time, step_average))
-
-        return total_loss / ct if ct != 0 else 0, self._eval(target)
-
     @staticmethod
-    def div_round(x, divisor):
+    def _div_round(x, divisor):
         """round up to nearest integer that are divisible by divisor"""
         return (x + divisor - 1) / divisor * divisor
 
     def _eval(self, target):
+        """evaluate estimated q value"""
         if self.eval_obs is None:
             return np.mean(target)
         else:
@@ -596,4 +577,5 @@ class DeepRecurrentQNetwork(TFBaseModel):
             }))
 
     def get_info(self):
+        """get information of model"""
         return "tfdrqn train_time: %d" % (self.train_ct)
