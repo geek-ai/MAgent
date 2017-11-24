@@ -33,6 +33,8 @@ class PyGameRenderer(BaseRenderer):
             grid_max_size=100,
             zoom_rate=1 / 60,
             move_rate=4,
+            stop_step=50,
+            add_counter=10,
             full_screen=True
     ):
         def draw_line(surface, color, a, b):
@@ -81,6 +83,9 @@ class PyGameRenderer(BaseRenderer):
         show_grid = True
         animation_progress = 0
 
+        pause = False
+        counter = 0
+
         while True:
             done = False
 
@@ -95,6 +100,10 @@ class PyGameRenderer(BaseRenderer):
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_g:
                         show_grid = not show_grid
+                    elif event.key == pygame.K_a:
+                        if pause:
+                            server.add_agents(mouse_x, mouse_y, 1)
+                            pause = False
 
             pressed = pygame.key.get_pressed()
             if pressed[pygame.K_ESCAPE]:
@@ -134,10 +143,6 @@ class PyGameRenderer(BaseRenderer):
             if pressed[pygame.K_DOWN]:
                 view_position[1] += move_rate * grid_size
                 grids = None
-            if pressed[pygame.K_1]:
-                server.add_agents(mouse_x, mouse_y, 1)
-            if pressed[pygame.K_0]:
-                server.add_agents(mouse_x, mouse_y, 0)
 
             if done:
                 break
@@ -190,6 +195,11 @@ class PyGameRenderer(BaseRenderer):
                 )
                 if buffered_new_data is None:
                     buffered_new_data = new_data
+                else:
+                    counter += 1
+                    if add_counter and counter % stop_step == 0:
+                        pause = True
+                        add_counter -= 1
                 old_data = new_data
                 new_data = buffered_new_data
                 frame_id += 1
@@ -257,7 +267,9 @@ class PyGameRenderer(BaseRenderer):
                         attack_dot_size * grid_size,
                         attack_dot_size * grid_size
                     )
-                animation_progress += 1
+
+                if not pause or animation_progress < animation_total + animation_stop:
+                    animation_progress += 1
 
                 text_fps = text_formatter.render('FPS: {}'.format(int(clock.get_fps())), True, text_rgb)
                 text_window = text_formatter.render(

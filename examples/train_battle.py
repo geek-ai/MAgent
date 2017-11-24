@@ -14,14 +14,24 @@ from magent.builtin.tf_model import DeepQNetwork, DeepRecurrentQNetwork
 
 
 def generate_map(env, map_size, handles):
-    """ generate a map, which consists of two squares of agents"""
-    width = height = map_size
-    init_num = map_size * map_size * 0.04
-    gap = 3
+    width = map_size
+    height = map_size
 
+    init_num = 20
+
+    gap = 3
     leftID, rightID = 0, 1
 
     # left
+    pos = []
+    for y in range(10, height // 2 + 25):
+        pos.append((width / 2 - 5, y))
+        pos.append((width / 2 - 4, y))
+    for y in range(height // 2 - 25, height - 10):
+        pos.append((width / 2 + 5, y))
+        pos.append((width / 2 + 4, y))
+    env.add_walls(pos=pos, method="custom")
+
     n = init_num
     side = int(math.sqrt(n)) * 2
     pos = []

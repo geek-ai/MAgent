@@ -46,6 +46,15 @@ def generate_map(env, map_size, handles):
     leftID, rightID = 0, 1
 
     # left
+    pos = []
+    for y in range(10, height // 2 + 25):
+        pos.append((width / 2 - 5, y))
+        pos.append((width / 2 - 4, y))
+    for y in range(height // 2 - 25, height - 10):
+        pos.append((width / 2 + 5, y))
+        pos.append((width / 2 + 4, y))
+    env.add_walls(pos=pos, method="custom")
+
     n = init_num
     side = int(math.sqrt(n)) * 2
     pos = []
@@ -79,8 +88,8 @@ class BattleServer(BaseServer):
         models.append(DeepQNetwork(env, handles[1], 'battle2', use_conv=True))
 
         # load model
-        models[0].load(path, 8, 'battle')
-        models[1].load(path, 3, 'battle')
+        models[0].load(path, 1519, 'oach-r')
+        models[1].load(path, 1519, 'oach-r')
         
         # init environment
         env.reset()
@@ -139,10 +148,18 @@ class BattleServer(BaseServer):
 
     def add_agents(self, x, y, g):
         pos = []
-        for i in range(-3, 3):
-            for j in range(-3, 3):
+        for i in range(-4, 4):
+            for j in range(-4, 4):
                 pos.append((x + i, y + j))
         self.env.add_agents(self.handles[g], method="custom", pos=pos)
+
+        pos = []
+        x = np.random.randint(0, self.map_size - 1)
+        y = np.random.randint(0, self.map_size - 1)
+        for i in range(-4, 4):
+            for j in range(-4, 4):
+                pos.append((x + i, y + j))
+        self.env.add_agents(self.handles[g ^ 1], method="custom", pos=pos)
 
     def get_map_size(self):
         return self.map_size, self.map_size
