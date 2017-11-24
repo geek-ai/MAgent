@@ -22,18 +22,6 @@ RenderGenerator::RenderGenerator() {
 void RenderGenerator::next_file() {
     file_ct++;
     frame_ct = 0;
-
-
-    /***** static *****/
-    std::ofstream f_static(save_dir + "/" + "static.map");
-    std::vector<Position> walls;
-    map.get_wall(walls);
-
-    // walls
-    f_static << walls.size() << std::endl;
-    for (int i = 0; i < walls.size(); i++) {
-        f_static << walls[i].x << " " << walls[i].y << std::endl;
-    }
 }
 
 void RenderGenerator::set_attack_event(std::vector<RenderAttackEvent> &attack_events) {
@@ -76,7 +64,6 @@ void RenderGenerator::gen_config(std::vector<Group> &group, int w, int h) {
         {64, 192, 64},
         {64, 64, 64},
     };
-
 
     f_config << "{" << std::endl;
     print_json(f_config, "width", w);
@@ -132,7 +119,7 @@ void RenderGenerator::render_a_frame(std::vector<Group> &groups, const Map &map)
         map.get_wall(walls);
 
         // walls
-        fout << walls.size() << std::endl;
+        fout << "W" << " " << walls.size() << std::endl;
         for (int i = 0; i < walls.size(); i++) {
             fout << walls[i].x << " " << walls[i].y << std::endl;
         }
