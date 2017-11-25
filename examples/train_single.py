@@ -117,7 +117,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--save_every", type=int, default=5)
     parser.add_argument("--render_every", type=int, default=10)
-    parser.add_argument("--n_round", type=int, default=1500)
+    parser.add_argument("--n_round", type=int, default=2000)
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--load_from", type=int)
     parser.add_argument("--train", action="store_true")
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     start = time.time()
     for k in range(start_from, start_from + args.n_round):
         tic = time.time()
-        eps = magent.utility.piecewise_decay(k, [0, 600, 1200], [1, 0.2, 0.05]) if not args.greedy else 0
+        eps = magent.utility.piecewise_decay(k, [0, 700, 1400], [1, 0.2, 0.05]) if not args.greedy else 0
         loss, num, reward, value = play_a_round(env, args.map_size, handles, models,
                                                 train=args.train, print_every=50,
                                                 render=args.render or (k+1) % args.render_every == 0,

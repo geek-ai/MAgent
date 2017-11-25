@@ -1,3 +1,5 @@
+"""rename tensorflow models"""
+
 import sys
 
 import magent

@@ -46,6 +46,17 @@ def load_config(map_size):
 
 
 def generate_map(env, map_size, goal_handle, handles, messages, font):
+    # pre-process message
+    max_len = 8
+    new = []
+    for msg in messages:
+        if len(msg) > max_len:
+            for i in range(0, len(msg), max_len):
+                new.append(msg[i:i+max_len])
+        else:
+            new.append(msg)
+    messages = new
+
     center_x, center_y = map_size // 2, map_size // 2
 
     def add_square(pos, side, gap):
@@ -124,7 +135,7 @@ class ArrangeServer(BaseServer):
         models.append(DeepQNetwork(env, handles[0], 'arrange', use_conv=True))
 
         # load model
-        models[0].load(path, 1149)
+        models[0].load(path, 2)
 
         # init environment
         env.reset()

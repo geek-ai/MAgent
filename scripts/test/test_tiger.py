@@ -1,8 +1,10 @@
+"""test baselines in double attack"""
+
 from search import do_task
 
 task = [
     {
-        "name": "against",
+        "name": "tiger",
         "type": "single-search",
         "prefix": "python examples/train_tiger.py --train --n_round 250",
         "arg_name": "--alg",
@@ -15,5 +17,4 @@ for item in task:
     print("%s done" % item['name'])
 
 print("tiger all done")
-print("plot curve: python scripts/plot_many.py tiger-rec.log reward")
-
+print("plot curve: python scripts/plot_many.py tiger-rec.out reward")
