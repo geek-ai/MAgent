@@ -88,8 +88,8 @@ class BattleServer(BaseServer):
         models.append(DeepQNetwork(env, handles[1], 'battle2', use_conv=True))
 
         # load model
-        models[0].load(path, 1, 'battle')
-        models[1].load(path, 2, 'battle')
+        models[0].load(path, 1059, 'pong-r')
+        models[1].load(path, 1054, 'pong-r')
         
         # init environment
         env.reset()
@@ -148,16 +148,16 @@ class BattleServer(BaseServer):
 
     def add_agents(self, x, y, g):
         pos = []
-        for i in range(-4, 4):
-            for j in range(-4, 4):
+        for i in range(-5, 5):
+            for j in range(-5, 5):
                 pos.append((x + i, y + j))
         self.env.add_agents(self.handles[g], method="custom", pos=pos)
 
         pos = []
         x = np.random.randint(0, self.map_size - 1)
         y = np.random.randint(0, self.map_size - 1)
-        for i in range(-4, 4):
-            for j in range(-4, 4):
+        for i in range(-6, 6):
+            for j in range(-5, 5):
                 pos.append((x + i, y + j))
         self.env.add_agents(self.handles[g ^ 1], method="custom", pos=pos)
 
