@@ -1,3 +1,5 @@
+"""plot curve from many log files"""
+
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
@@ -5,6 +7,7 @@ import numpy as np
 rec_filename = sys.argv[1]
 plot_key = sys.argv[2]
 list_col_index = int(sys.argv[3]) if len(sys.argv) > 3 else -1
+silent = sys.argv[-1] == '--silent'
 
 def parse_pair(item):
     """parse pair  \tkey: value\t """
@@ -69,5 +72,6 @@ print(legend)
 print(data)
 plt.plot(data.T)
 plt.legend(legend)
-plt.show()
-
+plt.savefig(rec_filename.replace('.log', '.png'))
+if not silent:
+    plt.show()

@@ -54,7 +54,7 @@ std::string rgba_string(int r, int g, int b, float alpha) {
     return ss.str();
 };
 
-void RenderGenerator::gen_config(std::vector<Group> &group, const Map &map, int w, int h) {
+void RenderGenerator::gen_config(std::vector<Group> &group, int w, int h) {
     /***** config *****/
     std::ofstream f_config(save_dir + "/" + "config.json");
 
@@ -64,7 +64,6 @@ void RenderGenerator::gen_config(std::vector<Group> &group, const Map &map, int 
         {64, 192, 64},
         {64, 64, 64},
     };
-
 
     f_config << "{" << std::endl;
     print_json(f_config, "width", w);
@@ -103,21 +102,10 @@ void RenderGenerator::gen_config(std::vector<Group> &group, const Map &map, int 
     }
     f_config << "]" << std::endl;
     f_config << "}" << std::endl;
-
-    /***** static *****/
-    std::ofstream f_static(save_dir + "/" + "static.map");
-    std::vector<Position> walls;
-    map.get_wall(walls);
-
-    // walls
-    f_static << walls.size() << std::endl;
-    for (int i = 0; i < walls.size(); i++) {
-        f_static << walls[i].x << " " << walls[i].y << std::endl;
-    }
 }
 
 
-void RenderGenerator::render_a_frame(std::vector<Group> &groups) {
+void RenderGenerator::render_a_frame(std::vector<Group> &groups, const Map &map) {
     if (save_dir == "") {
         return;
     }
@@ -125,6 +113,19 @@ void RenderGenerator::render_a_frame(std::vector<Group> &groups) {
     std::string filename = save_dir + "/" + "video_" + std::to_string(file_ct) + ".txt";
     std::ofstream fout(filename.c_str(), frame_ct == 0 ? std::ios::out : std::ios::app);
 
+    // walls
+    if (frame_ct ==0) {
+        std::vector<Position> walls;
+        map.get_wall(walls);
+
+        // walls
+        fout << "W" << " " << walls.size() << std::endl;
+        for (int i = 0; i < walls.size(); i++) {
+            fout << walls[i].x << " " << walls[i].y << std::endl;
+        }
+    }
+
+    // count agents
     int num_agents = 0;
     for (int i  = 0; i < groups.size(); i++) {
         num_agents += groups[i].get_agents().size();
@@ -140,8 +141,7 @@ void RenderGenerator::render_a_frame(std::vector<Group> &groups) {
     }
     int num_attacks = (int)attack_events.size();
 
-
-
+    // frame info
     fout << "F" << " " << num_agents << " " << num_attacks << " " << 0 << std::endl;
 
     // agent
@@ -150,6 +150,7 @@ void RenderGenerator::render_a_frame(std::vector<Group> &groups) {
         const std::vector<Agent*> &agents = groups[i].get_agents();
 
         bool can_absorb = agents[0]->get_type().can_absorb;
+        // when type.can_absorb is true, do not render it if it is not absorbed
 
         for (int j = 0; j < agents.size(); j++) {
             const Agent &agent = *agents[j];
