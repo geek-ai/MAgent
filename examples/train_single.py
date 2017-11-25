@@ -170,6 +170,7 @@ if __name__ == "__main__":
                                    memory_size=2 * 8 * 625, target_update=target_update,
                                    train_freq=train_freq, eval_obs=eval_obs))
     else:
+        # see train_against.py to know how to use a2c
         raise NotImplementedError
 
     models.append(models[0])

@@ -181,8 +181,7 @@ if __name__ == "__main__":
                      'memory_size': 8 * 625, 'learning_rate': 1e-4,
                      'target_update': target_update, 'train_freq': train_freq}
     elif args.alg == 'a2c':
-        raise NotImplementedError
-    else:
+        # see train_against.py to know how to use a2c
         raise NotImplementedError
 
     # init models

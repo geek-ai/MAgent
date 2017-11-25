@@ -72,6 +72,6 @@ print(legend)
 print(data)
 plt.plot(data.T)
 plt.legend(legend)
-plt.savefig(rec_filename.replace('.log', '.png'))
+plt.savefig(rec_filename + ".png")
 if not silent:
     plt.show()
