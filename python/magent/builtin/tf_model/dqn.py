@@ -381,7 +381,7 @@ class DeepQNetwork(TFBaseModel):
         """infer action by multi gpu in parallel """
         ret = []
         beg = 0
-        while beg < len(ids):
+        while beg < len(view):
             feed_dict = {self.eps: eps}
             for i in range(self.num_gpu):
                 end = beg + self.infer_batch_size
