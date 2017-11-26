@@ -36,5 +36,5 @@ def as_bool_c_array(buf):
     return buf.ctypes.data_as(ctypes.POINTER(ctypes.c_bool))
 
 
-os.environ['OMP_NUM_THREADS'] = '8'   # performs best in our machines
+os.environ['OMP_NUM_THREADS'] = '16'   # performs best in our machines
 _LIB = _load_lib()

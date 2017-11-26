@@ -502,8 +502,7 @@ void GridWorld::step(int *done) {
         }
     }
 
-    // starve
-    LOG(TRACE) << "starve.  ";
+    // starve*LOG(TRACE) << "starve.  ";
     for (int i = 0; i < group_size; i++) {
         Group &group = groups[i];
         std::vector<Agent*> &agents = group.get_agents();

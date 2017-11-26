@@ -58,14 +58,13 @@ public:
     }
 
     PositionInteger pos2int(int x, int y) const {
-        //return (PositionInteger)x * map_height + y;
-        int val = y * map_width + x;
-        return (PositionInteger)y * map_width + x;
+        return (PositionInteger)x * map_height + y;
+        //return (PositionInteger)y * map_width + x;
     }
 
     Position int2pos(PositionInteger pos) const {
-        //return Position{(int)(pos / map_height), (int)(pos % map_height)};
-        return Position{(int)(pos % map_width), (int)(pos / map_width)};
+        return Position{(int)(pos / map_height), (int)(pos % map_height)};
+        //return Position{(int)(pos % map_width), (int)(pos / map_width)};
     }
 
 private:
