@@ -62,7 +62,7 @@ class PyGameRenderer(BaseRenderer):
         clock = pygame.time.Clock()
         
         if full_screen:
-            canvas = pygame.display.set_mode(resolution, pygame.DOUBLEBUF | pygame.FULLSCREEN, 0)
+            canvas = pygame.display.set_mode(resolution, pygame.DOUBLEBUF, 0)
         else:
             canvas = pygame.display.set_mode(resolution, pygame.DOUBLEBUF, 0)
         pygame.display.set_caption('MAgent Renderer Window')
