@@ -1,8 +1,8 @@
 MAgent
 ==============================================
 
-[![Build Status](http://oj.kipsora.com:8080/buildStatus/icon?job=magent)](None)
-[![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/emersion/stability-badges#experimental)
+![Build Status](http://oj.kipsora.com:8080/buildStatus/icon?job=magent)
+![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)
 
 MAgent is a platform aimed at many-agent reinforcement learning.
 Unlike previous research platforms on single or multi-agent reinforcement learning, 
