@@ -61,7 +61,7 @@ if __name__ == "__main__":
     n_step += skip
 
     # init the game "forest" (or "battle" here)
-    env = magent.GridWorld(load_forest(int(math.sqrt(agent_number * 200))))
+    env = magent.GridWorld(load_forest(int(math.sqrt(agent_number * 20))))
     env.reset()
 
     # add two groups of animals
@@ -101,7 +101,7 @@ if __name__ == "__main__":
         # simulate one step
         done = measure_time("step", env.step)
 
-        # update DQN
+        # get reward
         rewards = measure_time("get reward", env.get_reward, tiger_handle)
         total_reward += sum(rewards)
         measure_time("clear", env.clear_dead)
