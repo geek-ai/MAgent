@@ -18,7 +18,7 @@ inline void save_to_real(const Agent *agent, int &real_x, int &real_y);
 inline void real_to_save(const Agent *agent, int real_x, int real_y, Direction new_dir, int &save_x, int &save_y);
 inline void get_size_for_dir(Agent *agent, int &width, int &height);
 
-#define MAP_INNER_Y_ADD 1
+#define MAP_INNER_Y_ADD w
 
 void Map::reset(int width, int height, bool food_mode) {
     this->w = width;
@@ -192,10 +192,10 @@ void Map::extract_view(const Agent *agent, float *linear_buffer, const int *chan
             if (channel_id != -1 && range->is_in(view_y, view_x)) {
                 channel_id = channel_trans[channel_id];
                 buffer.at(view_y, view_x, channel_id) = 1;
-                /*if (slots[pos_int].occupier != nullptr && slots[pos_int].occ_type == OCC_AGENT) { // is agent
+                if (slots[pos_int].occupier != nullptr && slots[pos_int].occ_type == OCC_AGENT) { // is agent
                     Agent *p = ((Agent *) slots[pos_int].occupier);
                     buffer.at(view_y, view_x, channel_id + 1) = p->get_hp() / p->get_type().hp; // normalize hp
-                }*/
+                }
             }
 
             *p_view_inner += d_view_inner;
