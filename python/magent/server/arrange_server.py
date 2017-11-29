@@ -19,7 +19,7 @@ def load_config(map_size):
 
     goal = cfg.register_agent_type(
         "goal",
-        {'width': 1, 'length': 1, 'hp': 1,
+        {'width': 1, 'length': 1,
 
          'can_absorb': True
          }
@@ -31,7 +31,7 @@ def load_config(map_size):
          'view_range': gw.CircleRange(6),
          'damage': 2, 'step_recover': -10.0/350,
 
-         'step_reward': -1,
+         'step_reward': 0,
          })
 
     g_goal = cfg.add_group(goal)
@@ -46,7 +46,20 @@ def load_config(map_size):
 
 
 def generate_map(env, map_size, goal_handle, handles, messages, font):
+    # pre-process message
+    max_len = 8
+    new = []
+    for msg in messages:
+        if len(msg) > max_len:
+            for i in range(0, len(msg), max_len):
+                new.append(msg[i:i+max_len])
+        else:
+            new.append(msg)
+    messages = new
+
     center_x, center_y = map_size // 2, map_size // 2
+    thick = 10
+    env.add_walls("maze", pos=[center_x - 60, center_y - 60, center_x + 60, center_y + 60, thick])
 
     def add_square(pos, side, gap):
         side = int(side)
@@ -59,12 +72,11 @@ def generate_map(env, map_size, goal_handle, handles, messages, font):
 
     # goal
     pos = []
-    add_square(pos, map_size * 0.6,  10)
+    add_square(pos, map_size * 0.70,  10)
+    add_square(pos, map_size * 0.66, 10)
+    add_square(pos, map_size * 0.62,  10)
     add_square(pos, map_size * 0.55, 10)
-    add_square(pos, map_size * 0.5,  10)
     add_square(pos, map_size * 0.45, 10)
-    add_square(pos, map_size * 0.4, 10)
-    add_square(pos, map_size * 0.3, 10)
     env.add_agents(goal_handle, method="custom", pos=pos)
     circle_goal_num = env.get_num(goal_handle)
 
@@ -97,10 +109,10 @@ def generate_map(env, map_size, goal_handle, handles, messages, font):
     # agent
     pos = []
 
-    add_square(pos, map_size * 0.9, 3)
-    add_square(pos, map_size * 0.8, 3)
-    add_square(pos, map_size * 0.7, 3)
-    add_square(pos, map_size * 0.65, 2)
+    add_square(pos, map_size * 0.95, 3)
+    add_square(pos, map_size * 0.90, 3)
+    add_square(pos, map_size * 0.85, 3)
+    add_square(pos, map_size * 0.80, 2)
 
     pos = np.array(pos)
     pos = pos[np.random.choice(np.arange(len(pos)), int(circle_goal_num + alpha_goal_num * 1.2), replace=False)]
@@ -109,7 +121,7 @@ def generate_map(env, map_size, goal_handle, handles, messages, font):
 
 
 class ArrangeServer(BaseServer):
-    def __init__(self, path="data/arrange_model", messages=None):
+    def __init__(self, path="data/arrange_model", messages=None, rnd=1999):
         # some parameter
         map_size = 200
         eps = 0.15
@@ -124,7 +136,7 @@ class ArrangeServer(BaseServer):
         models.append(DeepQNetwork(env, handles[0], 'arrange', use_conv=True))
 
         # load model
-        models[0].load(path, 2021)
+        models[0].load(path, rnd)
 
         # init environment
         env.reset()
@@ -155,15 +167,40 @@ class ArrangeServer(BaseServer):
         models = self.models
         env = self.env
 
+        center_x = self.map_size // 2
+        center_y = self.map_size
+
+        last_reward = {}
+        pos_reward_ct = set()
         for j in range(4):
             obs = [env.get_observation(handle) for handle in handles]
             ids = [env.get_agent_id(handle) for handle in handles]
 
             for i in range(len(handles)):
+                for k, id_ in enumerate(ids[i]):
+                    obs[i][1][k][-3] += last_reward.get(id_, 0.0)
                 acts = models[i].infer_action(obs[i], ids[i], 'e_greedy', eps=self.eps)
                 env.set_action(handles[i], acts)
 
             done = env.step()
+
+            goal_num = env.get_num(self.food_handle)
+            rewards = env.get_reward(handles[0])
+
+            for id_, r in zip(ids[0], rewards):
+                if r > 0.05 and id_ not in pos_reward_ct:
+                    pos_reward_ct.add(id_)
+
+            last_reward = {}
+
+            if 1.0 * len(pos_reward_ct) / goal_num >= 0.99:
+                pos = env.get_pos(handles[0])
+                for i in range(len(pos)):
+                    x, y = pos
+                    rate = 1.0 * (center_x + center_y - abs(x - center_x) - abs(y - center_y)) / map_size
+                    delta = -rate * 4.5 - 0.5
+                    last_reward[ids[0][i]] = delta + rewards[i]
+            
             num = [env.get_num(handle) for handle in [self.food_handle] + handles]
             env.clear_dead()
 

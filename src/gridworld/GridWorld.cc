@@ -198,24 +198,6 @@ void GridWorld::add_agents(GroupHandle group, int n, const char *method,
                                      << "already occupied, ignored.";
                     }
                 }
-        } else if (strequ(method, "maze")) {
-            /**
-             * default maze layer is 20,
-             * firstly, I should promise that will has enough slots for passing
-             * then add wall around the center block ignore all slots
-             */
-
-            int x_start = pos_x[0], y_start = pos_x[1], x_end = pos_x[2], y_end = pos_x[3], thick = pos_x[4];
-
-            Position left_up = Position{x_start, y_start};
-            Position right_bottom = Position{x_end, y_end};
-
-            // add blocks
-            std::vector<Position> pos_set = map.get_random_blank_with_fixed_points(random_engine, left_up, right_bottom,
-                                                                                   thick);
-            // add four slide walls
-            map.add_many_walls(pos_set);
-
         } else {
             LOG(FATAL) << "unsupported method in GridWorld::add_agents : " << method;
         }

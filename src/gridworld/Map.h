@@ -44,18 +44,11 @@ public:
 
     Position get_random_blank(std::default_random_engine &random_engine, int width=1, int height=1);
 
-    std::vector<Position> get_random_blank_with_fixed_points(std::default_random_engine &random_engine, Position left_top,
-                                                            Position right_bottom, int thick);
-
-    void add_slots_passing(std::default_random_engine &random_engine, Position left_top,
-                                            Position right_bottom, int thick);
-
 
     int add_agent(Agent *agent, Position pos, int width, int height, int base_channel_id);
     int add_agent(Agent *agent, int base_channel_id);
 
     int add_wall(Position pos);
-    int add_many_walls(std::vector<Position> pos_set);
     void remove_agent(Agent *agent);
 
     void average_pooling_group(float *group_buffer, int x0, int y0, int width, int height);
