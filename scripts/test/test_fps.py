@@ -4,7 +4,6 @@ import os
 import sys
 import magent
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 tmp_name = 'tmp'
 
 if len(sys.argv) < 2:

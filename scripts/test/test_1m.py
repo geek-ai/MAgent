@@ -6,7 +6,7 @@ import magent
 import math
 import argparse
 from magent.builtin.rule_model import RandomActor
-from magent.builtin.tf_model import DeepQNetwork
+from magent.builtin.mx_model import DeepQNetwork
 
 
 def load_forest(map_size):

@@ -3,6 +3,9 @@ First demo, show the usage of API
 """
 
 import magent
+# try:
+#     from magent.builtin.mx_model import DeepQNetwork
+# except ImportError as e:
 from magent.builtin.tf_model import DeepQNetwork
 
 if __name__ == "__main__":

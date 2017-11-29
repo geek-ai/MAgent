@@ -12,7 +12,7 @@ MAgent focuses on supporting the tasks and the applications that require hundred
 ## Requirement
 MAgent currently support Linux and OS X running Python 2.7 or python 3.
 We make no assumptions about the structure of your agents.
-You can write rule-based algorithms or use deep learning frameworks such as Tensorflow, MXNet, PyTorch.
+You can write rule-based algorithms or use deep learning frameworks.
 
 ## Install on Linux
 
