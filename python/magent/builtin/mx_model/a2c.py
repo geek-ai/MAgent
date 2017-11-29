@@ -1,3 +1,5 @@
+"""advantage actor critic"""
+
 import os
 import time
 
@@ -13,6 +15,33 @@ class AdvantageActorCritic(MXBaseModel):
                  train_freq=1, value_coef=0.1, ent_coef=0.1,
                  custom_view_space=None, custom_feature_space=None,
                  *args, **kwargs):
+        """init a model
+
+        Parameters
+        ----------
+        env: Environment
+            environment
+        handle: Handle (ctypes.c_int32)
+            handle of this group, can be got by env.get_handles
+        name: str
+            name of this model
+        learning_rate: float
+        batch_size: int
+        reward_decay: float
+            reward_decay in TD
+        eval_obs: numpy array
+            evaluation set of observation
+        train_freq: int
+            mean training times of a sample
+        ent_coef: float
+            weight of entropy loss in total loss
+        value_coef: float
+            weight of value loss in total loss
+        custom_feature_space: tuple
+            customized feature space
+        custom_view_space: tuple
+            customized feature space
+        """
         MXBaseModel.__init__(self, env, handle, name, "mxa2c")
         # ======================== set config  ========================
         self.env = env
@@ -74,6 +103,14 @@ class AdvantageActorCritic(MXBaseModel):
         # mx.viz.plot_network(self.output).view()
 
     def _create_network(self, input_view, input_feature):
+        """define computation graph of network
+
+        Parameters
+        ----------
+        view_space: tuple
+        feature_space: tuple
+            the input shape
+        """
         kernel_num = [32, 32]
         hidden_size = [256]
 
@@ -106,22 +143,49 @@ class AdvantageActorCritic(MXBaseModel):
         return policy, value
 
     def infer_action(self, raw_obs, ids, policy="e_greedy", eps=0):
+        """infer action for a batch of agents
+
+        Parameters
+        ----------
+        raw_obs: tuple(numpy array, numpy array)
+            raw observation of agents tuple(views, features)
+        ids: numpy array
+            ids of agents
+
+        Returns
+        -------
+        acts: numpy array of int32
+            actions for agents
+        """
         view, feature = raw_obs[0], raw_obs[1]
         n = len(view)
 
         ret = np.empty(n, dtype=np.int32)
-        with self.ctx:
-            self._reset_bind_size(n)
-            data_batch = mx.io.DataBatch(data=[mx.nd.array(view), mx.nd.array(feature)])
-            self.model.forward(data_batch, is_train=False)
-            policy = self.model.get_outputs()[3].asnumpy()
+        self._reset_bind_size(n)
+        data_batch = mx.io.DataBatch(data=[mx.nd.array(view), mx.nd.array(feature)])
+        self.model.forward(data_batch, is_train=False)
+        policy = self.model.get_outputs()[3].asnumpy()
 
-            actions = np.arange(self.num_actions)
-            for i in range(n):
-                ret[i] = np.random.choice(actions, p=policy[i])
+        actions = np.arange(self.num_actions)
+        for i in range(n):
+            ret[i] = np.random.choice(actions, p=policy[i])
         return ret
 
     def train(self, sample_buffer, print_every=1000):
+        """feed new data sample and train
+
+        Parameters
+        ----------
+        sample_buffer: magent.utility.EpisodesBuffer
+            buffer contains samples
+
+        Returns
+        -------
+        loss: list
+            policy gradient loss, critic loss, entropy loss
+        value: float
+            estimated state value
+        """
         # calc buffer size
         n = 0
         for episode in sample_buffer.episodes():
@@ -146,67 +210,73 @@ class AdvantageActorCritic(MXBaseModel):
         ct = 0
         gamma = self.reward_decay
         # collect episodes from multiple separate buffers to a continuous buffer
-        with self.ctx:
-            for episode in sample_buffer.episodes():
-                v, f, a, r = episode.views, episode.features, episode.actions, episode.rewards
 
-                m = len(episode.rewards)
-                self._reset_bind_size(m)
-                data_batch = mx.io.DataBatch(data=[mx.nd.array(v), mx.nd.array(f)])
-                self.model.forward(data_batch, is_train=False)
-                value = self.model.get_outputs()[1].asnumpy().flatten()
+        for episode in sample_buffer.episodes():
+            v, f, a, r = episode.views, episode.features, episode.actions, episode.rewards
 
-                delta_t = np.empty(m)
-                if episode.terminal:
-                    delta_t[:m-1] = r[:m-1] + gamma * value[1:m] - value[:m-1]
-                    delta_t[m-1]  = r[m-1]  + gamma * 0          - value[m-1]
-                else:
-                    delta_t[:m-1] = r[:m-1] + gamma * value[1:m] - value[:m-1]
-                    m -= 1
-                    v, f, a = v[:-1], f[:-1], a[:-1]
+            m = len(episode.rewards)
+            self._reset_bind_size(m)
+            data_batch = mx.io.DataBatch(data=[mx.nd.array(v), mx.nd.array(f)])
+            self.model.forward(data_batch, is_train=False)
+            value = self.model.get_outputs()[1].asnumpy().flatten()
 
-                if m == 0:
-                    continue
+            delta_t = np.empty(m)
+            if episode.terminal:
+                delta_t[:m-1] = r[:m-1] + gamma * value[1:m] - value[:m-1]
+                delta_t[m-1]  = r[m-1]  + gamma * 0          - value[m-1]
+            else:
+                delta_t[:m-1] = r[:m-1] + gamma * value[1:m] - value[:m-1]
+                m -= 1
+                v, f, a = v[:-1], f[:-1], a[:-1]
 
-                # discount advantage
-                keep = 0
-                for i in reversed(range(m)):
-                    keep = keep * gamma + delta_t[i]
-                    advantage[ct+i] = keep
+            if m == 0:
+                continue
 
-                view[ct:ct+m] = v
-                feature[ct:ct+m] = f
-                action[ct:ct+m]  = a
-                ct += m
+            # discount advantage
+            keep = 0
+            for i in reversed(range(m)):
+                keep = keep * gamma + delta_t[i]
+                advantage[ct+i] = keep
+
+            view[ct:ct+m] = v
+            feature[ct:ct+m] = f
+            action[ct:ct+m]  = a
+            ct += m
         assert n == ct
 
-        with self.ctx:
-            n = len(advantage)
-            neg_advantage = -advantage
+        n = len(advantage)
+        neg_advantage = -advantage
 
-            neg_advs_np = np.zeros((n, self.num_actions), dtype=np.float32)
-            neg_advs_np[np.arange(n), action] = neg_advantage
-            neg_advs = mx.nd.array(neg_advs_np)
+        neg_advs_np = np.zeros((n, self.num_actions), dtype=np.float32)
+        neg_advs_np[np.arange(n), action] = neg_advantage
+        neg_advs = mx.nd.array(neg_advs_np)
 
-            # the grads of values are exactly negative advantages
-            v_grads = mx.nd.array(self.value_coef * (neg_advantage[:, np.newaxis]))
-            data_batch = mx.io.DataBatch(data=[mx.nd.array(view), mx.nd.array(feature)])
-            self._reset_bind_size(n)
-            self.model.forward(data_batch, is_train=True)
-            log_policy, value, entropy_loss, _ = self.model.get_outputs()
-            self.model.backward(out_grads=[neg_advs, v_grads])
-            self.model.update()
+        # the grads of values are exactly negative advantages
+        v_grads = mx.nd.array(self.value_coef * (neg_advantage[:, np.newaxis]))
+        data_batch = mx.io.DataBatch(data=[mx.nd.array(view), mx.nd.array(feature)])
+        self._reset_bind_size(n)
+        self.model.forward(data_batch, is_train=True)
+        self.model.backward(out_grads=[neg_advs, v_grads])
+        self.model.update()
+        log_policy, value, entropy_loss, _ = self.model.get_outputs()
 
-            value = mx.nd.mean(value).asnumpy()[0]
-            log_policy = log_policy.asnumpy()[np.arange(n), action]
-            pg_loss = np.mean(neg_advantage * log_policy)
-            entropy_loss = np.mean(entropy_loss.asnumpy())
-            value_loss = self.value_coef * np.mean(np.square(advantage))
+        value = mx.nd.mean(value).asnumpy()[0]
+        log_policy = log_policy.asnumpy()[np.arange(n), action]
+        pg_loss = np.mean(neg_advantage * log_policy)
+        entropy_loss = np.mean(entropy_loss.asnumpy())
+        value_loss = self.value_coef * np.mean(np.square(advantage))
 
         print("sample %d  %.4f %.4f %.4f %.4f" % (n, pg_loss, value_loss, entropy_loss, value))
         return [pg_loss, value_loss, entropy_loss], value
 
     def _reset_bind_size(self, new_size):
+        """reset input shape of the model
+
+        Parameters
+        ----------
+        new_size: int
+            new batch size
+        """
         if self.bind_size == new_size:
             return
         else:
@@ -218,4 +288,10 @@ class AdvantageActorCritic(MXBaseModel):
             )
 
     def get_info(self):
+        """get information of the model
+
+        Returns
+        -------
+        info: string
+        """
         return "mx dqn train_time: %d" % (self.train_ct)

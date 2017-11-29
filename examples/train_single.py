@@ -117,7 +117,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--save_every", type=int, default=5)
     parser.add_argument("--render_every", type=int, default=10)
-    parser.add_argument("--n_round", type=int, default=1500)
+    parser.add_argument("--n_round", type=int, default=2000)
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--load_from", type=int)
     parser.add_argument("--train", action="store_true")
@@ -151,7 +151,7 @@ if __name__ == "__main__":
         eval_obs = magent.utility.sample_observation(env, handles, 2048, 500)[0]
 
     # init models
-    batch_size = 256
+    batch_size = 512
     unroll_step = 8
     target_update = 1200
     train_freq = 5
@@ -160,16 +160,17 @@ if __name__ == "__main__":
     if args.alg == 'dqn':
         models.append(DeepQNetwork(env, handles[0], "battle",
                                    batch_size=batch_size,
-                                   learning_rate=2e-4,
+                                   learning_rate=3e-4,
                                    memory_size=2 ** 21, target_update=target_update,
                                    train_freq=train_freq, eval_obs=eval_obs))
     elif args.alg == 'drqn':
         models.append(DeepRecurrentQNetwork(env, handles[0], "battle",
-                                   learning_rate=2e-4,
+                                   learning_rate=3e-4,
                                    batch_size=batch_size/unroll_step, unroll_step=unroll_step,
                                    memory_size=2 * 8 * 625, target_update=target_update,
                                    train_freq=train_freq, eval_obs=eval_obs))
     else:
+        # see train_against.py to know how to use a2c
         raise NotImplementedError
 
     models.append(models[0])
@@ -193,7 +194,7 @@ if __name__ == "__main__":
     start = time.time()
     for k in range(start_from, start_from + args.n_round):
         tic = time.time()
-        eps = magent.utility.piecewise_decay(k, [0, 600, 1200], [1, 0.2, 0.05]) if not args.greedy else 0
+        eps = magent.utility.piecewise_decay(k, [0, 700, 1400], [1, 0.2, 0.05]) if not args.greedy else 0
         loss, num, reward, value = play_a_round(env, args.map_size, handles, models,
                                                 train=args.train, print_every=50,
                                                 render=args.render or (k+1) % args.render_every == 0,

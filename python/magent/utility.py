@@ -100,6 +100,7 @@ def piecewise_decay(now_step, anchor, anchor_value):
         return anchor_value[i-1] + (now_step - anchor[i-1]) * \
                                    ((anchor_value[i] - anchor_value[i-1]) / (anchor[i] - anchor[i-1]))
 
+
 # eval observation set generator
 def sample_observation(env, handles, n_obs=-1, step=-1):
     """Sample observations by random actors.
@@ -180,6 +181,7 @@ def init_logger(filename):
     console.setLevel(logging.INFO)
     logging.getLogger('').addHandler(console)
 
+
 def rec_round(x, ndigits=2):
     """ round x recursively
 
@@ -193,6 +195,7 @@ def rec_round(x, ndigits=2):
     if isinstance(x, collections.Iterable):
         return [rec_round(item, ndigits) for item in x]
     return round(x, ndigits)
+
 
 def has_gpu():
     """ check where has a nvidia gpu """

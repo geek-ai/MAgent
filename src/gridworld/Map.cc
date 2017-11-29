@@ -183,7 +183,7 @@ void Map::extract_view(const Agent *agent, float *linear_buffer, const int *chan
 
     int start_inner = *p_view_inner;
 
-    // scan the map in cache-friendly order
+    // scan the map
     for (int x = start_x; x <= end_x; x++) {
         PositionInteger pos_int = pos2int(x, start_y);
         for (int y = start_y; y <= end_y; y++) {

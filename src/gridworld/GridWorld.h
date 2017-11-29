@@ -113,9 +113,9 @@ private:
     // action buffer
     std::vector<AttackAction> attack_buffer;
     // split the events to 3 regions and boundary for parallel
-    static const int NUM_MOVE_BUFFER = 3;
+    static const int NUM_MOVE_BUFFER = 16;
     std::vector<MoveAction> move_buffers[NUM_MOVE_BUFFER], move_buffer_bound;
-    static const int NUM_TURN_BUFFER = 3;
+    static const int NUM_TURN_BUFFER = 16;
     std::vector<TurnAction> turn_buffers[NUM_TURN_BUFFER], turn_buffer_bound;
 
     // render

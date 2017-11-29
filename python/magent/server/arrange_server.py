@@ -115,7 +115,7 @@ def generate_map(env, map_size, goal_handle, handles, messages, font):
     add_square(pos, map_size * 0.80, 2)
 
     pos = np.array(pos)
-    pos = pos[np.random.choice(np.arange(len(pos)), int(circle_goal_num + alpha_goal_num * 1.2), replace=False)]
+    pos = pos[np.random.choice(np.arange(len(pos)), int(circle_goal_num + alpha_goal_num * 1.1), replace=False)]
 
     env.add_agents(handles[0], method="custom", pos=pos)
 
@@ -155,7 +155,7 @@ class ArrangeServer(BaseServer):
 
     def get_group_info(self):
         ret = self.env._get_groups_info()
-        #ret[1] = ret[0]
+        ret[1] = ret[0]
         return ret
 
     def get_static_info(self):

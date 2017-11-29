@@ -1,6 +1,5 @@
 """
-Pursuit, predators get reward when they attack prey.
-The best way is to lock preys.
+Pursuit: predators get reward when they attack prey.
 """
 
 import argparse
@@ -11,35 +10,6 @@ import numpy as np
 
 import magent
 from magent.builtin.tf_model import DeepQNetwork
-
-
-def load_config(map_size):
-    gw = magent.gridworld
-    cfg = gw.Config()
-
-    cfg.set({"map_width": map_size, "map_height": map_size})
-
-    predator = cfg.register_agent_type(
-        "predator",
-        {'width': 2, 'length': 2, 'hp': 1, 'speed': 1,
-         'view_range': gw.CircleRange(5), 'attack_range': gw.CircleRange(2),
-         'step_reward': 0, 'attack_penalty': -0.2})
-
-    prey = cfg.register_agent_type(
-        "prey",
-        {'width': 1, 'length': 1, 'hp': 1, 'speed': 1.5,
-         'view_range': gw.CircleRange(4), 'attack_range': gw.CircleRange(0),
-         'step_reward': 0})
-
-    predator_group  = cfg.add_group(predator)
-    prey_group = cfg.add_group(prey)
-
-    a = gw.AgentSymbol(predator_group, index='any')
-    b = gw.AgentSymbol(prey_group, index='any')
-
-    cfg.add_reward_rule(gw.Event(a, 'attack', b), receiver=[a, b], value=[1, -1])
-
-    return cfg
 
 
 def play_a_round(env, map_size, handles, models, print_every, train=True, render=False, eps=None):
@@ -125,8 +95,10 @@ def play_a_round(env, map_size, handles, models, print_every, train=True, render
         train_time = time.time() - start_time
         print("train_time %.2f" % train_time)
 
-    def round_list(l): return [round(x, 2) for x in l]
-    return round_list(total_loss), round_list(total_reward), round_list(value)
+    print(total_loss)
+    print(total_reward)
+    print(value)
+    return magent.round(total_loss), magent.round(total_reward), magent.round(value)
 
 
 if __name__ == "__main__":
@@ -147,7 +119,7 @@ if __name__ == "__main__":
     magent.utility.init_logger(args.name)
 
     # init the game
-    env = magent.GridWorld(load_config(args.map_size))
+    env = magent.GridWorld("pursuit", map_size=args.map_size)
     env.set_render_dir("build/render")
 
     # two groups of agents

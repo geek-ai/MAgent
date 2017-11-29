@@ -33,6 +33,8 @@ class PyGameRenderer(BaseRenderer):
             grid_max_size=100,
             zoom_rate=1 / 60,
             move_rate=4,
+            stop_step=50,
+            add_counter=10,
             full_screen=True
     ):
         def draw_line(surface, color, a, b):
@@ -60,11 +62,13 @@ class PyGameRenderer(BaseRenderer):
         clock = pygame.time.Clock()
         
         if full_screen:
-            canvas = pygame.display.set_mode(resolution, pygame.DOUBLEBUF | pygame.FULLSCREEN, 0)
+            canvas = pygame.display.set_mode(resolution, pygame.DOUBLEBUF, 0)
         else:
             canvas = pygame.display.set_mode(resolution, pygame.DOUBLEBUF, 0)
         pygame.display.set_caption('MAgent Renderer Window')
         text_formatter = pygame.font.SysFont(None, text_height, True)
+
+        banner_formatter = pygame.font.SysFont(None, 32)
 
         map_size = server.get_map_size()
         view_position = [map_size[0] / 2 * grid_size - resolution[0] / 2, 
@@ -81,6 +85,9 @@ class PyGameRenderer(BaseRenderer):
         show_grid = True
         animation_progress = 0
 
+        pause = False
+        counter = 0
+
         while True:
             done = False
 
@@ -95,11 +102,16 @@ class PyGameRenderer(BaseRenderer):
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_g:
                         show_grid = not show_grid
+                    elif event.key == pygame.K_a:
+                        if pause:
+                            server.add_agents(mouse_x, mouse_y, 0)
+                            pause = False
 
             pressed = pygame.key.get_pressed()
             if pressed[pygame.K_ESCAPE]:
                 pygame.quit()
                 done = True
+
             if pressed[pygame.K_COMMA] or pressed[pygame.K_PERIOD]:
                 # center before means the center before zoom operation
                 # center after means the center after zoom operation
@@ -134,10 +146,6 @@ class PyGameRenderer(BaseRenderer):
             if pressed[pygame.K_DOWN]:
                 view_position[1] += move_rate * grid_size
                 grids = None
-            if pressed[pygame.K_1]:
-                server.add_agents(mouse_x, mouse_y, 1)
-            if pressed[pygame.K_0]:
-                server.add_agents(mouse_x, mouse_y, 0)
 
             if done:
                 break
@@ -190,6 +198,11 @@ class PyGameRenderer(BaseRenderer):
                 )
                 if buffered_new_data is None:
                     buffered_new_data = new_data
+                else:
+                    counter += 1
+                    if add_counter and counter % stop_step == 0:
+                        pause = True
+                        add_counter -= 1
                 old_data = new_data
                 new_data = buffered_new_data
                 frame_id += 1
@@ -257,7 +270,9 @@ class PyGameRenderer(BaseRenderer):
                         attack_dot_size * grid_size,
                         attack_dot_size * grid_size
                     )
-                animation_progress += 1
+
+                if not pause or animation_progress < animation_total + animation_stop:
+                    animation_progress += 1
 
                 text_fps = text_formatter.render('FPS: {}'.format(int(clock.get_fps())), True, text_rgb)
                 text_window = text_formatter.render(
@@ -270,11 +285,23 @@ class PyGameRenderer(BaseRenderer):
 
                 text_grids = text_formatter.render('Numbers: %d' % len(new_data[0]), True, text_rgb)
                 text_mouse = text_formatter.render('Mouse: (%d, %d)' % (mouse_x, mouse_y), True, text_rgb)
+                text_please = banner_formatter.render('Please press a to add your agents', True, text_rgb)
+
+                numbers = server.get_numbers()
+                banner_red = banner_formatter.render('{}'.format(numbers[0]), True, pygame.Color(200, 0, 0))
+                banner_vs = banner_formatter.render(' vs ', True, text_rgb)
+                banner_blue = banner_formatter.render('{}'.format(numbers[1]), True, pygame.Color(0, 0, 200))
 
                 canvas.blit(text_fps, (0, 0))
                 canvas.blit(text_window, (0, (text_height + text_spacing) / 1.5))
                 canvas.blit(text_grids, (0, (text_height + text_spacing) / 1.5 * 2))
                 canvas.blit(text_mouse, (0, (text_height + text_spacing) / 1.5 * 3))
+                if pause:
+                    canvas.blit(text_please, (resolution[0] / 2 - 140, 32))
+
+                canvas.blit(banner_blue, (resolution[0] / 2 - 45, 0))
+                canvas.blit(banner_vs, (resolution[0] / 2, 0))
+                canvas.blit(banner_red, (resolution[0] / 2 + 60, 0))
 
             pygame.display.update()
             clock.tick(fps_soft_bound)

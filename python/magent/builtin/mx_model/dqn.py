@@ -3,17 +3,53 @@ import time
 import numpy as np
 import mxnet as mx
 
-from magent.utility import has_gpu
 from .base import MXBaseModel
 from ..common import ReplayBuffer
+from ...utility import has_gpu
 
 
 class DeepQNetwork(MXBaseModel):
     def __init__(self, env, handle, name,
                  batch_size=64, reward_decay=0.99, learning_rate=1e-4,
                  train_freq=1, target_update=2000, memory_size=2 ** 20, eval_obs=None,
-                 use_dueling=True, use_double=True, use_prior_sample=False,
-                 custom_view_space=None, custom_feature_space=None):
+                 use_dueling=True, use_double=True,
+                 custom_view_space=None, custom_feature_space=None,
+                 num_gpu=1, infer_batch_size=8192):
+        """init a model
+
+        Parameters
+        ----------
+        env: Environment
+            environment
+        handle: Handle (ctypes.c_int32)
+            handle of this group, can be got by env.get_handles
+        name: str
+            name of this model
+        learning_rate: float
+        batch_size: int
+        reward_decay: float
+            reward_decay in TD
+        train_freq: int
+            mean training times of a sample
+        target_update: int
+            target will update every target_update batches
+        memory_size: int
+            weight of entropy loss in total loss
+        eval_obs: numpy array
+            evaluation set of observation
+        use_dueling: bool
+            whether use dueling q network
+        use_double: bool
+            whether use double q network
+        num_gpu: int
+            number of gpu
+        infer_batch_size: int
+            batch size while inferring actions
+        custom_feature_space: tuple
+            customized feature space
+        custom_view_space: tuple
+            customized feature space
+        """
         MXBaseModel.__init__(self, env, handle, name, "mxdqn")
         # ======================== set config  ========================
         self.env = env
@@ -24,18 +60,25 @@ class DeepQNetwork(MXBaseModel):
 
         self.batch_size    = batch_size
         self.learning_rate = learning_rate
-        self.train_freq    = train_freq       # train time of every sample (s,a,r,s')
-        self.target_update = target_update  # update frequency of target network
+        self.train_freq    = train_freq      # train time of every sample (s,a,r,s')
+        self.target_update = target_update   # update frequency of target network
         self.eval_obs      = eval_obs
+        self.num_gpu       = num_gpu
+        self.infer_batch_size = infer_batch_size  # maximum batch size when infer actions,
+                                    # change this to fit your GPU memory if you meet a OOM
+
 
         self.use_dueling  = use_dueling
         self.use_double   = use_double
-        self.use_prior_sample = use_prior_sample
 
         self.train_ct = 0
 
         # ======================= build network =======================
         self.ctx = self._get_ctx()
+        if self.num_gpu > 1 and self.ctx == mx.gpu():
+            self.ctx = []
+            for i in range(self.num_gpu):
+                self.ctx.append(mx.gpu(i))
 
         self.input_view = mx.sym.var("input_view")
         self.input_feature = mx.sym.var("input_feature")
@@ -76,8 +119,8 @@ class DeepQNetwork(MXBaseModel):
         # init params
         self.model.init_params(initializer=mx.init.Xavier())
         self.model.init_optimizer(optimizer='adam', optimizer_params={
-                                  'learning_rate': learning_rate,
-                                  'clip_gradient': 10.0})
+            'learning_rate': learning_rate,
+            'clip_gradient': 10.0})
 
         self._copy_network(self.target_model, self.model)
 
@@ -96,6 +139,14 @@ class DeepQNetwork(MXBaseModel):
         # mx.viz.plot_network(self.loss).view()
 
     def _create_network(self, input_view, input_feature):
+        """define computation graph of network
+
+        Parameters
+        ----------
+        input_view: mx.symbol
+        input_feature: mx.symbol
+            the input symbol
+        """
         kernel_num = [32, 32]
         hidden_size = [256]
 
@@ -118,7 +169,7 @@ class DeepQNetwork(MXBaseModel):
         h_emb = mx.sym.FullyConnected(data=input_feature, num_hidden=hidden_size[0])
         h_emb = mx.sym.Activation(data=h_emb, act_type="relu")
 
-        dense = h_view + h_emb
+        dense = mx.sym.concat(h_view, h_emb)
 
         if self.use_dueling:
             # state value
@@ -134,6 +185,24 @@ class DeepQNetwork(MXBaseModel):
         return qvalues
 
     def infer_action(self, raw_obs, ids, policy="e_greedy", eps=0):
+        """infer action for a batch of agents
+
+        Parameters
+        ----------
+        raw_obs: tuple(numpy array, numpy array)
+            raw observation of agents tuple(views, features)
+        ids: numpy array
+            ids of agents
+        policy: str
+            can be eps-greedy or greedy
+        eps: float
+            used when policy is eps-greedy
+
+        Returns
+        -------
+        acts: numpy array of int32
+            actions for agents
+        """
         view, feature = raw_obs[0], raw_obs[1]
 
         if policy == 'e_greedy':
@@ -142,12 +211,21 @@ class DeepQNetwork(MXBaseModel):
             eps = 0
 
         n = len(view)
-        self._reset_bind_size(n)
-        with self.ctx:
-            data_batch = mx.io.DataBatch(data=[mx.nd.array(view), mx.nd.array(feature)])
-            self.model.forward(data_batch, is_train=False)
+        if n < self.num_gpu:
+            view = np.tile(view, (self.num_gpu, 1, 1, 1))
+            feature = np.tile(feature, (self.num_gpu, 1))
+
+        batch_size = min(len(view), self.infer_batch_size)
+        self._reset_bind_size(batch_size)
+        best_actions = []
+        infer_iter = mx.io.NDArrayIter(data=[view, feature], batch_size=batch_size)
+        for batch in infer_iter:
+            self.model.forward(batch, is_train=False)
             qvalue_batch = self.model.get_outputs()[0]
-            best_actions = mx.nd.argmax(qvalue_batch, axis=1).asnumpy()
+            batch_action = mx.nd.argmax(qvalue_batch, axis=1)
+            best_actions.append(batch_action)
+        best_actions = np.array([x.asnumpy() for x in best_actions]).flatten()
+        best_actions = best_actions[:n]
 
         random = np.random.randint(self.num_actions, size=(n,))
         cond = np.random.uniform(0, 1, size=(n,)) < eps
@@ -156,27 +234,28 @@ class DeepQNetwork(MXBaseModel):
         return ret.astype(np.int32)
 
     def _calc_target(self, next_view, next_feature, rewards, terminal):
+        """calculate target value"""
         n = len(rewards)
 
-        with self.ctx:
-            data_batch = mx.io.DataBatch(data=[mx.nd.array(next_view), mx.nd.array(next_feature)])
-            if self.use_double:
-                self._reset_bind_size(n)
-                self.target_model.forward(data_batch, is_train=False)
-                self.model.forward(data_batch, is_train=False)
-                t_qvalues = self.target_model.get_outputs()[0].asnumpy()
-                qvalues   = self.model.get_outputs()[0].asnumpy()
-                next_value = t_qvalues[np.arange(n), np.argmax(qvalues, axis=1)]
-            else:
-                self.target_model.forward(data_batch, is_train=False)
-                t_qvalues = self.target_model.get_outputs()[0]
-                next_value = np.max(t_qvalues, axis=1)
+        data_batch = mx.io.DataBatch(data=[mx.nd.array(next_view), mx.nd.array(next_feature)])
+        if self.use_double:
+            self._reset_bind_size(n)
+            self.target_model.forward(data_batch, is_train=False)
+            self.model.forward(data_batch, is_train=False)
+            t_qvalues = self.target_model.get_outputs()[0].asnumpy()
+            qvalues   = self.model.get_outputs()[0].asnumpy()
+            next_value = t_qvalues[np.arange(n), np.argmax(qvalues, axis=1)]
+        else:
+            self.target_model.forward(data_batch, is_train=False)
+            t_qvalues = self.target_model.get_outputs()[0]
+            next_value = np.max(t_qvalues, axis=1)
 
         target = np.where(terminal, rewards, rewards + self.gamma * next_value)
 
         return target
 
     def _add_to_replay_buffer(self, sample_buffer):
+        """add samples in sample_buffer to replay buffer"""
         n = 0
         for episode in sample_buffer.episodes():
             v, f, a, r = episode.views, episode.features, episode.actions, episode.rewards
@@ -203,6 +282,20 @@ class DeepQNetwork(MXBaseModel):
         return n
 
     def train(self, sample_buffer, print_every=1000):
+        """ add new samples in sample_buffer to replay buffer and train
+
+        Parameters
+        ----------
+        sample_buffer: magent.utility.EpisodesBuffer
+            buffer contains samples
+
+        Returns
+        -------
+        loss: float
+            bellman residual loss
+        value: float
+            estimated state value
+        """
         add_num = self._add_to_replay_buffer(sample_buffer)
         batch_size = self.batch_size
         total_loss = 0
@@ -233,18 +326,17 @@ class DeepQNetwork(MXBaseModel):
             batch_target = self._calc_target(batch_next_view, batch_next_feature,
                                              batch_reward, batch_terminal)
 
-            with self.ctx:
-                self._reset_bind_size(batch_size)
-                batch = mx.io.DataBatch(data=[mx.nd.array(batch_view),
-                                              mx.nd.array(batch_feature)],
-                                        label=[mx.nd.array(batch_action),
-                                               mx.nd.array(batch_target),
-                                               mx.nd.array(batch_mask)])
-                self.model.forward(batch, is_train=True)
-                self.model.backward()
-                loss = self.model.get_outputs()[1].asnumpy()
-                self.model.update()
-                total_loss += loss
+            self._reset_bind_size(batch_size)
+            batch = mx.io.DataBatch(data=[mx.nd.array(batch_view),
+                                          mx.nd.array(batch_feature)],
+                                    label=[mx.nd.array(batch_action),
+                                           mx.nd.array(batch_target),
+                                           mx.nd.array(batch_mask)])
+            self.model.forward(batch, is_train=True)
+            self.model.backward()
+            self.model.update()
+            loss = np.mean(self.model.get_outputs()[1].asnumpy())
+            total_loss += loss
 
             if ct % self.target_update == 0:
                 self._copy_network(self.target_model, self.model)
@@ -261,6 +353,7 @@ class DeepQNetwork(MXBaseModel):
         return total_loss / ct if ct != 0 else 0, self._eval(batch_target)
 
     def _reset_bind_size(self, new_size):
+        """reset batch size of model"""
         if self.bind_size == new_size:
             return
         else:
@@ -278,10 +371,12 @@ class DeepQNetwork(MXBaseModel):
             _reshape(self.target_model, True)
 
     def _copy_network(self, dest, source):
+        """copy to target network"""
         arg_params, aux_params = source.get_params()
         dest.set_params(arg_params, aux_params)
 
     def _eval(self, target):
+        """evaluate estimated q value"""
         if self.eval_obs is None:
             return np.mean(target)
         else:
@@ -289,8 +384,9 @@ class DeepQNetwork(MXBaseModel):
             with self.ctx:
                 batch = mx.io.DataBatch(data=[mx.nd.array(self.eval_obs[0]),
                                               mx.nd.array(self.eval_obs[1])])
-                self.model.forward(batch, is_train=True)
+                self.model.forward(batch, is_train=False)
                 return np.mean(self.model.get_outputs()[0].asnumpy())
 
     def get_info(self):
+        """get information"""
         return "mx dqn train_time: %d" % (self.train_ct)

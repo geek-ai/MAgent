@@ -13,14 +13,13 @@ import numpy as np
 import magent
 from magent.builtin.rule_model import RandomActor
 
-leftID, rightID = 0, 1
+
 def generate_map(env, map_size, handles):
     width = height = map_size
     init_num = map_size * map_size * 0.04
 
     gap = 3
-    global leftID, rightID
-    leftID, rightID = rightID, leftID
+    leftID, rightID = 0, 1
 
     # add left square of agents
     n = init_num
@@ -144,14 +143,8 @@ if __name__ == "__main__":
     parser.add_argument("--greedy", action="store_true")
     parser.add_argument("--name", type=str, default="against")
     parser.add_argument("--eval", action="store_true")
-    parser.add_argument("--mean", action="store_true")
     parser.add_argument("--opponent", type=int, default=1)
     parser.add_argument('--alg', default='dqn', choices=['dqn', 'drqn', 'a2c'])
-
-    # tuning now
-    parser.add_argument("--network_type", type=int, default=0)
-    parser.add_argument("--ent_coef", type=float, default=0.08)
-    parser.add_argument("--value_coef", type=float, default=0.1)
 
     args = parser.parse_args()
 
@@ -197,7 +190,7 @@ if __name__ == "__main__":
                                    memory_size=4 * 625, train_freq=train_freq, eval_obs=eval_obs[0]))
         step_batch_size = None
     elif args.alg == 'a2c':
-        from magent.builtin.tf_model import AdvantageActorCritic
+        from magent.builtin.mx_model import AdvantageActorCritic
         step_batch_size = 10 * args.map_size * args.map_size * 0.04
         models.append(magent.ProcessingModel(env, handles[0], names[0], 1000, AdvantageActorCritic,
                                              learning_rate=1e-3))

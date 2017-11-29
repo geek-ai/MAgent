@@ -32,9 +32,9 @@ public:
     std::vector<RenderAttackEvent> &get_attack_event();
 
     void set_render(const char *key, const char *value);
-    void gen_config(std::vector<Group> &group, const Map &map, int w, int h);
+    void gen_config(std::vector<Group> &group, int w, int h);
 
-    void render_a_frame(std::vector<Group> &groups);
+    void render_a_frame(std::vector<Group> &groups, const Map &map);
 
     std::string get_save_dir() {
         return save_dir;
