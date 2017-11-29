@@ -1,5 +1,5 @@
 """
-train agents to gather food
+Train agents to gather food
 """
 
 import argparse

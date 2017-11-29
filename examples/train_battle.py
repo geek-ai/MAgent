@@ -43,6 +43,7 @@ def generate_map(env, map_size, handles):
 
 
 def play_a_round(env, map_size, handles, models, print_every, train=True, render=False, eps=None):
+    """play a ground and train"""
     env.reset()
     generate_map(env, map_size, handles)
 

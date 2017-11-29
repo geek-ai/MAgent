@@ -168,8 +168,8 @@ class BattleServer(BaseServer):
         pos = []
         x = np.random.randint(0, self.map_size - 1)
         y = np.random.randint(0, self.map_size - 1)
-        for i in range(-5, 6):
-            for j in range(-5, 6):
+        for i in range(-5, 5):
+            for j in range(-5, 5):
                 pos.append((x + i, y + j))
         self.env.add_agents(self.handles[g ^ 1], method="custom", pos=pos)
 

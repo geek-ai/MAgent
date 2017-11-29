@@ -1,5 +1,6 @@
 """
-Interactive game, Pygame are required
+Interactive game, Pygame are required.
+Act like a general and dispatch your soilders.
 """
 
 from magent.renderer import PyGameRenderer

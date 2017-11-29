@@ -10,9 +10,9 @@ MAgent focuses on supporting the tasks and the applications that require hundred
 [see video](https://www.youtube.com/watch?v=HCSm0kVolqI)
 
 ## Requirement
-MAgent currently support Linux and OS X running Python 2.7 or python 3.
+MAgent currently supports Linux and OS X running Python 2.7 or python 3.
 We make no assumptions about the structure of your agents.
-You can write rule-based algorithms or use deep learning frameworks such as Tensorflow, MXNet, PyTorch.
+You can write rule-based algorithms or use deep learning frameworks.
 
 ## Install on Linux
 
@@ -31,11 +31,10 @@ export PYTHONPATH=$(pwd)/python:$PYTHONPATH
 git clone git@bitbucket.org:geek-ai/magent.git
 cd MAgent
 
-brew install cmake llvm
-brew install boost
+brew install cmake llvm boost
+brew install jsoncpp argp-standalone
 brew tap david-icracked/homebrew-websocketpp
-brew install jsoncpp websocketpp
-brew install argp-standalone
+brew install --HEAD david-icracked/websocketpp/websocketpp
 
 bash build.sh
 export PYTHONPATH=$(pwd)/python:$PYTHONPATH
@@ -46,8 +45,14 @@ export PYTHONPATH=$(pwd)/python:$PYTHONPATH
 
 
 ## Examples
-The training time of following tasks is at most 1 day on a GTX1080-Ti card.
-If you meet out-of-memory error, you can tune the map_size smaller or tune infer_batch_size smaller in models.
+The training time of following tasks is about 1 day on a GTX1080-Ti card.
+If out-of-memory errors occur, you can tune the map_size smaller or tune infer_batch_size smaller in models.
+
+**Note** : You should run following examples in the root directory of this repo. Do not cd to `examples/`.
+
+#### train
+Three examples shown in the above video.
+video files will be saved every 10 rounds. You can use render to see them.
 
 * **pursuit**
 
@@ -66,8 +71,13 @@ If you meet out-of-memory error, you can tune the map_size smaller or tune infer
 	```
 	python examples/train_battle.py --train
 	```
+### play
+An interactive game to play with battle agents.
 
-Video files will be saved every 10 rounds. You can use render to see them.
+* **battle game**
+    ```
+    python examples/show_battle_game.py
+    ```
 
 ## Baseline Algorithm
 Baseline algorithm is implemented both in Tensorflow and MXNet.

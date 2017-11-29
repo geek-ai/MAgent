@@ -1,5 +1,5 @@
 """
-double attack, tigers get reward when they attack a same deer
+Double attack, tigers get reward when they attack a same deer
 """
 
 import argparse

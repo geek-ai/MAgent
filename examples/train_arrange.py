@@ -1,5 +1,5 @@
 """
-train agents to arrange themselves into a specific message
+Train agents to arrange themselves into a specific message
 """
 
 import argparse
