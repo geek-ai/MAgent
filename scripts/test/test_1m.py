@@ -3,11 +3,12 @@
 import time
 
 import magent
+import os
 import math
 import argparse
 from magent.builtin.rule_model import RandomActor
-from magent.builtin.mx_model import DeepQNetwork
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 def load_forest(map_size):
     gw = magent.gridworld
@@ -53,6 +54,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_step", type=int, default=20)
     parser.add_argument("--agent_number", type=int, default=1000)
     parser.add_argument("--num_gpu", type=int, default=0)
+    parser.add_argument('--frame', default='tf', choices=['tf', 'mx'])
     args = parser.parse_args()
 
     n_step = args.n_step
@@ -76,6 +78,10 @@ if __name__ == "__main__":
         model1 = RandomActor(env, deer_handle, "deer")
         model2 = RandomActor(env, tiger_handle, "tiger")
     else:
+        if args.frame == 'tf':
+            from magent.builtin.tf_model import DeepQNetwork
+        else:
+            from magent.builtin.mx_model import DeepQNetwork
         model1 = DeepQNetwork(env, deer_handle, "deer", num_gpu=args.num_gpu, infer_batch_size=50000)
         model2 = DeepQNetwork(env, tiger_handle, "tiger", num_gpu=args.num_gpu, infer_batch_size=50000)
 

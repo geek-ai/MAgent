@@ -113,8 +113,6 @@ class GridWorld(Environment):
                                   buf.ctypes.data_as(ctypes.POINTER(ctypes.c_int32)))
             self.action_space[handle.value] = (buf[0],)
 
-        self.nchw_layout = False
-
     def reset(self):
         """reset environment"""
         _LIB.env_reset(self.game)
@@ -239,9 +237,6 @@ class GridWorld(Environment):
         bufs[1] = as_float_c_array(feature_buf)
         _LIB.env_get_observation(self.game, handle, bufs)
 
-        if self.nchw_layout:
-            view_buf = np.transpose(view_buf, [0, 3, 1, 2])
-
         return view_buf, feature_buf
 
     def set_action(self, handle, actions):
@@ -316,11 +311,7 @@ class GridWorld(Environment):
         -------
         view_space : tuple
         """
-        if self.nchw_layout:
-            tmp = self.view_space[handle.value]
-            return tmp[2], tmp[1], tmp[0]
-        else:
-            return self.view_space[handle.value]
+        return self.view_space[handle.value]
 
     def get_feature_space(self, handle):
         """ get feature space
@@ -390,8 +381,7 @@ class GridWorld(Environment):
         buf: numpy array
             map attack action into view
         """
-        size = self.get_view_space(handle)
-        size = size[1:3] if self.nchw_layout else size[0:2]
+        size = self.get_view_space(handle)[0:2]
         buf = np.empty(size, dtype=np.int32)
         attack_base = ctypes.c_int32()
         _LIB.env_get_info(self.game, handle, b"view2attack",

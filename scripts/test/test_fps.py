@@ -7,12 +7,13 @@ import magent
 tmp_name = 'tmp'
 
 if len(sys.argv) < 2:
-    print("usage python test_fps.py max_gpu")
+    print("usage python test_fps.py max_gpu frame")
 
 if len(sys.argv) == 3:
     tmp_name += sys.argv[2]
 
 max_gpu = eval(sys.argv[1])
+framework = sys.argv[2]
 
 number = [1000, 10000, 100000, 1000000]
 gpus   = range(max_gpu+1)
@@ -23,8 +24,8 @@ for n in number:
     row = []
     for g in gpus:
         n_step = 30000000 / n
-        cmd = ("python scripts/test/test_1m.py --n_step %d --agent_number %d --num_gpu %d > /dev/shm/aha"
-                "&& cat /dev/shm/aha | grep FPS > %s" % (n_step, n, g, tmp_name))
+        cmd = ("python scripts/test/test_1m.py --n_step %d --agent_number %d --num_gpu %d --frame %s > /dev/shm/aha "
+                "&& cat /dev/shm/aha | grep FPS > %s" % (n_step, n, g, framework, tmp_name))
         if n < 1000000:
             cmd = 'OMP_NUM_THREADS=8  ' + cmd
         else:

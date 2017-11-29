@@ -100,16 +100,17 @@ class DeepQNetwork(MXBaseModel):
         # print("parameters", self.model.get_params())
         # mx.viz.plot_network(self.loss).view()
 
-    def _create_network(self, input_view, input_feature):
+    def _create_network(self, input_view, input_feature, use_conv=True):
         kernel_num = [32, 32]
         hidden_size = [256]
 
-        if has_gpu():
+        if use_conv:
+            input_view = mx.sym.transpose(data=input_view, axes=[0, 3, 1, 2])
             h_conv1 = mx.sym.Convolution(data=input_view, kernel=(3, 3),
-                                         num_filter=kernel_num[0], layout="NHWC")
+                                         num_filter=kernel_num[0], layout="NCHW")
             h_conv1 = mx.sym.Activation(data=h_conv1, act_type="relu")
             h_conv2 = mx.sym.Convolution(data=h_conv1, kernel=(3, 3),
-                                         num_filter=kernel_num[1], layout="NHWC")
+                                         num_filter=kernel_num[1], layout="NCHW")
             h_conv2 = mx.sym.Activation(data=h_conv2, act_type="relu")
         else:
             input_view = mx.sym.flatten(data=input_view)

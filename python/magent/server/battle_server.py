@@ -5,6 +5,7 @@ import numpy as np
 import magent
 from magent.server import BaseServer
 from magent.builtin.tf_model import DeepQNetwork
+import matplotlib.pyplot as plt
 
 
 def load_config(map_size):
@@ -84,12 +85,12 @@ class BattleServer(BaseServer):
 
         handles = env.get_handles()
         models = []
-        models.append(DeepQNetwork(env, handles[0], 'battle1', use_conv=True))
-        models.append(DeepQNetwork(env, handles[1], 'battle2', use_conv=True))
+        models.append(DeepQNetwork(env, handles[0], 'trusty-l', use_conv=True))
+        models.append(DeepQNetwork(env, handles[1], 'trusty-r', use_conv=True))
 
         # load model
-        models[0].load(path, 1059, 'pong-r')
-        models[1].load(path, 1054, 'pong-r')
+        models[0].load(path, 1224, 'trusty-l')
+        models[1].load(path, 1219, 'trusty-r')
         
         # init environment
         env.reset()
@@ -101,6 +102,8 @@ class BattleServer(BaseServer):
         self.eps = eps
         self.models = models
         self.map_size = map_size
+        print(env.get_view2attack(handles[0]))
+        plt.show()
 
     def get_group_info(self):
         ret = self.env._get_groups_info()
@@ -118,9 +121,18 @@ class BattleServer(BaseServer):
         obs = [env.get_observation(handle) for handle in handles]
         ids = [env.get_agent_id(handle) for handle in handles]
 
+        counter = []
         for i in range(len(handles)):
             acts = models[i].infer_action(obs[i], ids[i], 'e_greedy', eps=self.eps)
             env.set_action(handles[i], acts)
+            counter.append(np.zeros(shape=env.get_action_space(handles[i])))
+            for j in acts:
+                counter[-1][j] += 1
+        #plt.clf()
+        #for c in counter:
+        #    plt.bar(range(len(c)), c / np.sum(c))
+        #plt.draw()
+        #plt.pause(1e-8)
 
         # code for checking the correctness of observation
         # for channel in range(7):
@@ -156,10 +168,13 @@ class BattleServer(BaseServer):
         pos = []
         x = np.random.randint(0, self.map_size - 1)
         y = np.random.randint(0, self.map_size - 1)
-        for i in range(-6, 6):
-            for j in range(-5, 5):
+        for i in range(-5, 6):
+            for j in range(-5, 6):
                 pos.append((x + i, y + j))
         self.env.add_agents(self.handles[g ^ 1], method="custom", pos=pos)
 
     def get_map_size(self):
         return self.map_size, self.map_size
+
+    def get_numbers(self):
+        return self.env.get_num(self.handles[0]), self.env.get_num(self.handles[1])
