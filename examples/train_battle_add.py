@@ -13,17 +13,25 @@ import magent
 from magent.builtin.tf_model import DeepQNetwork, DeepRecurrentQNetwork
 
 
-leftID, rightID = 0, 1
 def generate_map(env, map_size, handles):
-    """ generate a map, which consists of two squares of agents"""
-    width = height = map_size
-    init_num = map_size * map_size * 0.04
-    gap = 3
+    width = map_size
+    height = map_size
 
-    global leftID, rightID
-    leftID, rightID = rightID, leftID
+    init_num = 20
+
+    gap = 3
+    leftID, rightID = 0, 1
 
     # left
+    pos = []
+    for y in range(10, height // 2 + 25):
+        pos.append((width / 2 - 5, y))
+        pos.append((width / 2 - 4, y))
+    for y in range(height // 2 - 25, height - 10):
+        pos.append((width / 2 + 5, y))
+        pos.append((width / 2 + 4, y))
+    env.add_walls(pos=pos, method="custom")
+
     n = init_num
     side = int(math.sqrt(n)) * 2
     pos = []
@@ -43,7 +51,6 @@ def generate_map(env, map_size, handles):
 
 
 def play_a_round(env, map_size, handles, models, print_every, train=True, render=False, eps=None):
-    """play a ground and train"""
     env.reset()
     generate_map(env, map_size, handles)
 
@@ -60,6 +67,7 @@ def play_a_round(env, map_size, handles, models, print_every, train=True, render
     print("===== sample =====")
     print("eps %.2f number %s" % (eps, nums))
     start_time = time.time()
+    counter = 10
     while not done:
         # take actions for every model
         for i in range(n):
@@ -79,6 +87,9 @@ def play_a_round(env, map_size, handles, models, print_every, train=True, render
         step_reward = []
         for i in range(n):
             rewards = env.get_reward(handles[i])
+            pos = env.get_pos(handles[i])
+            for (x, y) in pos:
+                rewards -= ((1.0 * x / map_size - 0.5) ** 2 + (1.0 * y / map_size - 0.5) ** 2) / 100
             if train:
                 alives = env.get_alive(handles[i])
                 # store samples in replay buffer (non-blocking)
@@ -107,7 +118,27 @@ def play_a_round(env, map_size, handles, models, print_every, train=True, render
                   (step_ct, nums, np.around(step_reward, 2), np.around(total_reward, 2)))
 
         step_ct += 1
-        if step_ct > 550:
+        if step_ct % 50 == 0 and counter >= 0:
+            counter -= 1
+            g = 1
+            pos = []
+            x = np.random.randint(0, map_size - 1)
+            y = np.random.randint(0, map_size - 1)
+            for i in range(-4, 4):
+                for j in range(-4, 4):
+                    pos.append((x + i, y + j))
+            env.add_agents(handles[g ^ 1], method="custom", pos=pos)
+            
+            pos = []
+            x = np.random.randint(0, map_size - 1)
+            y = np.random.randint(0, map_size - 1)
+            for i in range(-4, 4):
+                for j in range(-4, 4):
+                    pos.append((x + i, y + j))
+            env.add_agents(handles[g], method="custom", pos=pos)
+            
+            step_ct = 0
+        if step_ct > 500:
             break
 
     sample_time = time.time() - start_time
@@ -135,7 +166,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--save_every", type=int, default=5)
     parser.add_argument("--render_every", type=int, default=10)
-    parser.add_argument("--n_round", type=int, default=2000)
+    parser.add_argument("--n_round", type=int, default=1500)
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--load_from", type=int)
     parser.add_argument("--train", action="store_true")
@@ -174,7 +205,7 @@ if __name__ == "__main__":
     if args.alg == 'dqn':
         RLModel = DeepQNetwork
         base_args = {'batch_size': batch_size,
-                     'memory_size': 2 ** 20, 'learning_rate': 1e-4,
+                     'memory_size': 2 ** 21, 'learning_rate': 1e-4,
                      'target_update': target_update, 'train_freq': train_freq}
     elif args.alg == 'drqn':
         RLModel = DeepRecurrentQNetwork
@@ -182,7 +213,8 @@ if __name__ == "__main__":
                      'memory_size': 8 * 625, 'learning_rate': 1e-4,
                      'target_update': target_update, 'train_freq': train_freq}
     elif args.alg == 'a2c':
-        # see train_against.py to know how to use a2c
+        raise NotImplementedError
+    else:
         raise NotImplementedError
 
     # init models
@@ -213,7 +245,7 @@ if __name__ == "__main__":
     start = time.time()
     for k in range(start_from, start_from + args.n_round):
         tic = time.time()
-        eps = magent.utility.piecewise_decay(k, [0, 700, 1400], [1, 0.2, 0.05]) if not args.greedy else 0
+        eps = magent.utility.piecewise_decay(k, [0, 600, 1200], [1, 0.2, 0.1]) if not args.greedy else 0
         loss, num, reward, value = play_a_round(env, args.map_size, handles, models,
                                                 train=args.train, print_every=50,
                                                 render=args.render or (k+1) % args.render_every == 0,
