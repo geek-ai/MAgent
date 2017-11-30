@@ -6,7 +6,7 @@ MAgent
 
 MAgent is a research platform for many-agent reinforcement learning.
 Unlike previous research platforms that focus on reinforcement learning research with a single agent or only few agents, 
-MAgent supports research on the tasks and the applications that require the number of agents ranging from hundreds to millions.
+MAgent supports reinforcement learning research that scales up from hundreds to millions agents.
 [see video](https://www.youtube.com/watch?v=HCSm0kVolqI)
 
 ## Requirement
