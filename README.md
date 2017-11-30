@@ -79,5 +79,5 @@ An interactive game to play with battle agents.
     python examples/show_battle_game.py
     ```
 
-## Baseline Algorithm
-Baseline algorithm is implemented both in Tensorflow and MXNet.
+## Baseline Algorithms
+The baseline algorithms are implemented both in Tensorflow and MXNet.
