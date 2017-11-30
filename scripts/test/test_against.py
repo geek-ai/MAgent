@@ -17,5 +17,5 @@ for item in task:
     print("%s done" % item['name'])
 
 print("battle-against all done")
-print("plot curve: python scripts/plot_many.py against-rec.out reward 0")
+print("plot curve: python scripts/plot_many.py against-rec.out num 0")
 

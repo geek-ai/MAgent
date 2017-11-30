@@ -11,8 +11,6 @@ import math
 import numpy as np
 
 import magent
-from magent.builtin.tf_model import DeepQNetwork, DeepRecurrentQNetwork
-from magent.builtin.mx_model import AdvantageActorCritic
 
 
 def load_config(map_size):
@@ -236,11 +234,13 @@ if __name__ == "__main__":
     train_freq = 5
 
     if args.alg == 'dqn':
+        from magent.builtin.tf_model import DeepQNetwork
         RLModel = DeepQNetwork
         base_args = {'batch_size': batch_size,
                      'memory_size': 2 ** 20,
                      'target_update': target_update, 'train_freq': train_freq}
     elif args.alg == 'drqn':
+        from magent.builtin.tf_model import DeepRecurrentQNetwork
         RLModel = DeepRecurrentQNetwork
         base_args = {'batch_size': batch_size / unroll_step, 'unroll_step': unroll_step,
                      'memory_size': 8 * 300,

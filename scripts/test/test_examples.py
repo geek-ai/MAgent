@@ -3,23 +3,32 @@
 import os
 import time
 
-tasks = [
-    "python examples/train_tiger.py   --train --n_round 1",
-    "python examples/train_pursuit.py --train --n_round 1",
-    "python examples/train_gather.py  --train --n_round 1",
-    "python examples/train_battle.py  --train --n_round 1",
-    "python examples/train_single.py  --train --n_round 1",
-    "python examples/train_arrange.py --train --n_round 1",
-    "python examples/train_multi.py   --train --n_round 1",
+source = [
+    "examples/train_tiger.py",
+    "examples/train_pursuit.py",
+    "examples/train_gather.py",
+    "examples/train_battle.py",
+    "examples/train_single.py",
+    "examples/train_arrange.py",
+    "examples/train_multi.py",
 ]
 
-start = time.time()
-for item in tasks:
-    cmd = item
-    print(cmd)
+
+def do_cmd(cmd):
     tic = time.time()
-    ret = os.system(cmd)
-    print(cmd, time.time() - tic)
-    assert ret == 0
+    print(cmd)
+    assert os.system(cmd) == 0
+    return time.time() - tic
+
+
+start = time.time()
+for item in source:
+    run_cmd = "python %s --train --n_round 1" % item
+    do_cmd(run_cmd)
+
+    change_cmd = "sed -i 's/tf_model/mx_model/g' %s" % item
+    do_cmd(change_cmd)
+
+    do_cmd(run_cmd)
 
 print("test examples done", time.time() - start)

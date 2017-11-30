@@ -12,7 +12,6 @@ import math
 import numpy as np
 
 import magent
-from magent.builtin.tf_model import DeepQNetwork, DeepRecurrentQNetwork
 
 
 def generate_map(env, map_size, handles):
@@ -158,12 +157,14 @@ if __name__ == "__main__":
 
     models = []
     if args.alg == 'dqn':
+        from magent.builtin.tf_model import DeepQNetwork
         models.append(DeepQNetwork(env, handles[0], "battle",
                                    batch_size=batch_size,
                                    learning_rate=3e-4,
                                    memory_size=2 ** 21, target_update=target_update,
                                    train_freq=train_freq, eval_obs=eval_obs))
     elif args.alg == 'drqn':
+        from magent.builtin.tf_model import DeepRecurrentQNetwork
         models.append(DeepRecurrentQNetwork(env, handles[0], "battle",
                                    learning_rate=3e-4,
                                    batch_size=batch_size/unroll_step, unroll_step=unroll_step,
