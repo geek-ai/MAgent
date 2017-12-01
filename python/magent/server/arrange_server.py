@@ -315,7 +315,7 @@ class ArrangeServer(BaseServer):
         models.append(DeepQNetwork(env, handles[0], 'arrange', use_conv=True))
 
         # load model
-        models[0].load(path, 2717)
+        models[0].load(path, 10)
 
         # init environment
         env.reset()
@@ -379,6 +379,9 @@ class ArrangeServer(BaseServer):
             self.num = [env.get_num(handle) for handle in [self.food_handle] + handles]
             env.clear_dead()
 
+            if done:
+                break
+
         return done
 
     def get_data(self, frame_id, x_range, y_range):
@@ -386,7 +389,7 @@ class ArrangeServer(BaseServer):
 
         if not self.done:
             self.done = self.step()
-
+        print(self.done)
         if self.done:
             print("done!")
 
