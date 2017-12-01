@@ -13,7 +13,7 @@ from magent.builtin.tf_model import DeepQNetwork as RLModel
 from magent.utility import FontProvider
 
 
-def remove_wall(d, cur_pos, wall_set):
+def remove_wall(d, cur_pos, wall_set, unit):
     if d == 0:
         for i in range(0, unit):
             for j in range(0, unit):
@@ -57,7 +57,7 @@ def dfs(x, y, width, height, unit, wall_set):
             cur_pos = trace[-1]
             trace.pop()
             if random.choice(range(2)) == 0:
-                remove_wall(d, cur_pos, wall_set)
+                remove_wall(d, cur_pos, wall_set, unit)
             flag = 0
         if len(trace) == 0:
             break
@@ -74,7 +74,7 @@ def dfs(x, y, width, height, unit, wall_set):
             d = (d + 1) % 4
             flag += 1
         else:
-            remove_wall(d, cur_pos, wall_set)
+            remove_wall(d, cur_pos, wall_set, unit)
             trace.append(tuple(cur_pos))
             pos.add(tuple(cur_pos))
             d = random.choice(range(4))
@@ -214,7 +214,7 @@ def load_config(map_size):
     return cfg
 
 
-def generate_map(env, map_size, goal_handle, handles, rnd):
+def generate_map(env, map_size, goal_handle, handles):
     # random message
     font = FontProvider('data/font_8x8/basic.txt')
     n_msg = random.randint(1, 4)
