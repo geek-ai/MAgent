@@ -13,4 +13,4 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python show_arrange.py messages...")
         exit()
-    PyGameRenderer().start(Server(messages=sys.argv[1:]), grid_size=5)
+    PyGameRenderer().start(Server(messages=sys.argv[1:]), grid_size=5, add_counter=0)
