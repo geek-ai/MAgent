@@ -2,6 +2,8 @@
 
 import math
 import collections
+import platform
+
 import numpy as np
 import logging
 import collections
@@ -207,11 +209,13 @@ def download_file(filename, url):
     import urllib2
     print("Download %s from %s..." % (filename, url))
 
-    file = urllib2.urlopen(url)
-    with open(filename, 'wb') as fout:
-        fout.write(file.read())
-
-    # os.system("wget -O %s '%s'" % (filename, url))
+    #file = urllib2.urlopen(url)
+    #with open(filename, 'wb') as fout:
+    #    fout.write(file.read())
+    if platform.system() == 'Darwin':
+        os.system("curl -O %s '%s'" % (filename, url))
+    else:
+        os.system("wget -O %s '%s'" % (filename, url))
 
     print("download done!")
 
