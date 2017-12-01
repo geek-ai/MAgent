@@ -73,13 +73,7 @@ class PyGameRenderer(BaseRenderer):
         banner_formatter = pygame.font.SysFont(None, banner_size, True)
         bigscreen_formatter = pygame.font.SysFont(None, bigscreen_size, True)
 
-<<<<<<< HEAD
         map_size, groups, static_info = server.get_info()
-=======
-        banner_formatter = pygame.font.SysFont(None, 32)
-
-        map_size = server.get_map_size()
->>>>>>> 7fbc18b05289570747daa2cd8822b3f46dd8cbe7
         view_position = [map_size[0] / 2 * grid_size - resolution[0] / 2, 
                          map_size[1] / 2 * grid_size - resolution[1] / 2]
         frame_id = 0
@@ -108,7 +102,6 @@ class PyGameRenderer(BaseRenderer):
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_g:
                         show_grid = not show_grid
-<<<<<<< HEAD
                     else:
                         triggered = server.keydown(frame_id, event.key, mouse_x, mouse_y)
                 elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -131,12 +124,6 @@ class PyGameRenderer(BaseRenderer):
                         view_position[1] += (center_before[1] - center_after[1]) * grid_size
                     else:
                         triggered = server.mousedown(frame_id, pygame.mouse.get_pressed(), mouse_x, mouse_y)
-=======
-                    elif event.key == pygame.K_a:
-                        if pause:
-                            server.add_agents(mouse_x, mouse_y, 0)
-                            pause = False
->>>>>>> 7fbc18b05289570747daa2cd8822b3f46dd8cbe7
 
             pressed = pygame.key.get_pressed()
             if pressed[pygame.K_ESCAPE]:
@@ -311,12 +298,6 @@ class PyGameRenderer(BaseRenderer):
 
                 text_grids = text_formatter.render('Numbers: %d' % len(new_data[0]), True, text_rgb)
                 text_mouse = text_formatter.render('Mouse: (%d, %d)' % (mouse_x, mouse_y), True, text_rgb)
-                text_please = banner_formatter.render('Please press a to add your agents', True, text_rgb)
-
-                numbers = server.get_numbers()
-                banner_red = banner_formatter.render('{}'.format(numbers[0]), True, pygame.Color(200, 0, 0))
-                banner_vs = banner_formatter.render(' vs ', True, text_rgb)
-                banner_blue = banner_formatter.render('{}'.format(numbers[1]), True, pygame.Color(0, 0, 200))
 
                 canvas.blit(text_fps, (0, 0))
                 canvas.blit(text_window, (0, (text_size + text_spacing) / 1.5))

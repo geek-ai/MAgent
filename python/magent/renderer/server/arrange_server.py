@@ -306,7 +306,10 @@ class ArrangeServer(BaseServer):
         return False
 
     def get_status(self, frame_id):
-        return True
+        if self.done:
+            return None
+        else:
+            return True
 
     def get_endscreen(self, frame_id):
         return []

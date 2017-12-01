@@ -106,6 +106,7 @@ class BattleServer(BaseServer):
         self.total_step = total_step
         self.add_interval = add_interval
         self.add_counter = add_counter
+        self.done = False
         print(env.get_view2attack(handles[0]))
         plt.show()
 
@@ -148,11 +149,9 @@ class BattleServer(BaseServer):
 
     def get_data(self, frame_id, x_range, y_range):
         start = time.time()
-        done = self.step()
-
-        if done:
+        if self.done:
             return None
-
+        self.done = self.step()
         pos, event = self.env._get_render_info(x_range, y_range)
         print(" fps ", 1 / (time.time() - start))
         return pos, event
@@ -195,7 +194,7 @@ class BattleServer(BaseServer):
     def get_status(self, frame_id):
         if frame_id % self.add_interval == 0 and self.add_counter > 0:
             return False
-        elif frame_id >= self.total_step:
+        elif frame_id >= self.total_step or self.done:
             return None
         else:
             return True
@@ -204,7 +203,8 @@ class BattleServer(BaseServer):
         return False
 
     def mousedown(self, frame_id, pressed, mouse_x, mouse_y):
-        if frame_id % self.add_interval == 0 and frame_id < self.total_step and pressed[0] and self.add_counter > 0:
+        if frame_id % self.add_interval == 0 and frame_id < self.total_step and pressed[0] \
+                and self.add_counter > 0 and not self.done:
             self.add_counter -= 1
             pos = []
             for i in range(-5, 5):
@@ -223,7 +223,7 @@ class BattleServer(BaseServer):
         return False
 
     def get_endscreen(self, frame_id):
-        if frame_id == self.total_step:
+        if frame_id == self.total_step or self.done:
             if self.env.get_num(self.handles[0]) > self.env.get_num(self.handles[1]):
                 return [(("You", (200, 0, 0)), (" win! :)", (0, 0, 0)))]
             else:

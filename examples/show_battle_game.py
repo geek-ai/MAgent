@@ -7,7 +7,7 @@ import os
 
 import magent
 from magent.renderer import PyGameRenderer
-from magent.server import BattleServer as Server
+from magent.renderer.server import BattleServer as Server
 
 
 if __name__ == "__main__":
