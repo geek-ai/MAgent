@@ -44,6 +44,7 @@ public:
 
     Position get_random_blank(std::default_random_engine &random_engine, int width=1, int height=1);
 
+
     int add_agent(Agent *agent, Position pos, int width, int height, int base_channel_id);
     int add_agent(Agent *agent, int base_channel_id);
 
@@ -98,6 +99,8 @@ private:
     void set_channel_id(PositionInteger pos, int id) {
         channel_ids[pos] = id;
     }
+
+    void dfs(std::default_random_engine &random_engine, int x, int y, int thick, int mode);
 
     inline bool is_blank_area(int x, int y, int width, int height,  void *self = nullptr);
     inline void clear_area(int x, int y, int width, int height);

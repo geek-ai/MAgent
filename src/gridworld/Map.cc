@@ -49,8 +49,8 @@ void Map::reset(int width, int height, bool food_mode) {
 Position Map::get_random_blank(std::default_random_engine &random_engine, int width, int height) {
     int tries = 0;
     while (true) {
-        int x = (int)random_engine() % (w - width);
-        int y = (int)random_engine() % (h - height);
+        int x = (int) random_engine() % (w - width);
+        int y = (int) random_engine() % (h - height);
 
         if (is_blank_area(x, y, width, height)) {
             return Position{x, y};
