@@ -209,19 +209,20 @@ def download_file(filename, url):
     import urllib2
     print("Download %s from %s..." % (filename, url))
 
-    #file = urllib2.urlopen(url)
-    #with open(filename, 'wb') as fout:
-    #    fout.write(file.read())
-    if platform.system() == 'Darwin':
-        os.system("curl -O %s '%s'" % (filename, url))
-    else:
-        os.system("wget -O %s '%s'" % (filename, url))
+    ret = os.system("wget -O %s '%s'" % (filename, url))
 
-    print("download done!")
+    if ret != 0:
+        print("wget fails. Retry with python function. It may takes several miniuts...")
+        raw = urllib2.urlopen(url)
+        with open(filename, 'wb') as fout:
+            fout.write(raw.read())
+    else:
+        print("download done!")
 
 
 def download_model(url):
-    name = os.path.join('data', 'model.tar.gz')
+    name = url.split('/')[-1]
+    name = os.path.join('data', name)
     download_file(name, url)
     def do_commond(cmd):
         print(cmd)
