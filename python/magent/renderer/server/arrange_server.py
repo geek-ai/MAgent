@@ -246,8 +246,8 @@ def generate_map(env, map_size, goal_handle, handles, messages, font):
 
     # create maze
     radius = 90
-    #pos_list = create_maze([center_x - radius, center_y - radius], radius + 1, 15, 2, font_area=[radius * 2 - 28, radius * 2 - 28])
-    #env.add_walls(method="custom", pos=pos_list)
+    pos_list = create_maze([center_x - radius, center_y - radius], radius + 1, 15, 2, font_area=[radius * 2 - 28, radius * 2 - 28])
+    env.add_walls(method="custom", pos=pos_list)
 
     def add_square(pos, side, gap):
         side = int(side)
