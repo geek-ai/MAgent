@@ -5,8 +5,8 @@ import math
 
 import pygame
 
-from magent.server.base_server import BaseServer
 from magent.renderer.base_renderer import BaseRenderer
+from magent.renderer.server import BaseServer
 
 
 class PyGameRenderer(BaseRenderer):
@@ -25,16 +25,18 @@ class PyGameRenderer(BaseRenderer):
             attack_dot_rgb=pygame.Color(0, 0, 0),
             attack_dot_size=0.3,
             text_rgb=pygame.Color(0, 0, 0),
-            text_height=16,
+            text_size=16,
             text_spacing=3,
+            banner_size=32,
+            banner_spacing=3,
+            bigscreen_size=72,
+            bigscreen_spacing=0,
             grid_rgba=(pygame.Color(0, 0, 0), 30),
-            grid_size=10,
+            grid_size=7.5,
             grid_min_size=2,
             grid_max_size=100,
-            zoom_rate=1 / 60,
+            zoom_rate=1 / 30,
             move_rate=4,
-            stop_step=50,
-            add_counter=10,
             full_screen=True
     ):
         def draw_line(surface, color, a, b):
@@ -65,32 +67,36 @@ class PyGameRenderer(BaseRenderer):
             canvas = pygame.display.set_mode(resolution, pygame.DOUBLEBUF, 0)
         else:
             canvas = pygame.display.set_mode(resolution, pygame.DOUBLEBUF, 0)
-        pygame.display.set_caption('MAgent Renderer Window')
-        text_formatter = pygame.font.SysFont(None, text_height, True)
 
+        pygame.display.set_caption('MAgent Renderer Window')
+        text_formatter = pygame.font.SysFont(None, text_size, True)
+        banner_formatter = pygame.font.SysFont(None, banner_size, True)
+        bigscreen_formatter = pygame.font.SysFont(None, bigscreen_size, True)
+
+<<<<<<< HEAD
+        map_size, groups, static_info = server.get_info()
+=======
         banner_formatter = pygame.font.SysFont(None, 32)
 
         map_size = server.get_map_size()
+>>>>>>> 7fbc18b05289570747daa2cd8822b3f46dd8cbe7
         view_position = [map_size[0] / 2 * grid_size - resolution[0] / 2, 
                          map_size[1] / 2 * grid_size - resolution[1] / 2]
         frame_id = 0
 
-        groups = server.get_group_info()
-        walls  = server.get_static_info()['wall']
+        walls  = static_info['wall']
 
         old_data = None
         new_data = None
 
         grids = None
-        show_grid = True
+        show_grid = False
         animation_progress = 0
-
-        pause = False
-        counter = 0
 
         while True:
             done = False
-
+            status = server.get_status(frame_id)
+            triggered = False
             # calculate the relative moues coordinates in the gridworld
             mouse_x, mouse_y = pygame.mouse.get_pos()
             mouse_x = int((mouse_x + view_position[0]) / grid_size)
@@ -102,10 +108,35 @@ class PyGameRenderer(BaseRenderer):
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_g:
                         show_grid = not show_grid
+<<<<<<< HEAD
+                    else:
+                        triggered = server.keydown(frame_id, event.key, mouse_x, mouse_y)
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 4 or event.button == 5:
+                        center_before = (
+                            (view_position[0] + resolution[0] / 2) / grid_size,
+                            (view_position[1] + resolution[1] / 2) / grid_size
+                        )
+                        if event.button == 5:
+                            grid_size = max(grid_size - grid_size * zoom_rate, grid_min_size)
+                            grids = None
+                        else:
+                            grid_size = min(grid_size + grid_size * zoom_rate, grid_max_size)
+                            grids = None
+                        center_after = (
+                            (view_position[0] + resolution[0] / 2) / grid_size,
+                            (view_position[1] + resolution[1] / 2) / grid_size
+                        )
+                        view_position[0] += (center_before[0] - center_after[0]) * grid_size
+                        view_position[1] += (center_before[1] - center_after[1]) * grid_size
+                    else:
+                        triggered = server.mousedown(frame_id, pygame.mouse.get_pressed(), mouse_x, mouse_y)
+=======
                     elif event.key == pygame.K_a:
                         if pause:
                             server.add_agents(mouse_x, mouse_y, 0)
                             pause = False
+>>>>>>> 7fbc18b05289570747daa2cd8822b3f46dd8cbe7
 
             pressed = pygame.key.get_pressed()
             if pressed[pygame.K_ESCAPE]:
@@ -198,11 +229,6 @@ class PyGameRenderer(BaseRenderer):
                 )
                 if buffered_new_data is None:
                     buffered_new_data = new_data
-                else:
-                    counter += 1
-                    if add_counter and counter % stop_step == 0:
-                        pause = True
-                        add_counter -= 1
                 old_data = new_data
                 new_data = buffered_new_data
                 frame_id += 1
@@ -271,7 +297,7 @@ class PyGameRenderer(BaseRenderer):
                         attack_dot_size * grid_size
                     )
 
-                if not pause or animation_progress < animation_total + animation_stop:
+                if status or triggered or animation_progress < animation_total + animation_stop:
                     animation_progress += 1
 
                 text_fps = text_formatter.render('FPS: {}'.format(int(clock.get_fps())), True, text_rgb)
@@ -293,15 +319,53 @@ class PyGameRenderer(BaseRenderer):
                 banner_blue = banner_formatter.render('{}'.format(numbers[1]), True, pygame.Color(0, 0, 200))
 
                 canvas.blit(text_fps, (0, 0))
-                canvas.blit(text_window, (0, (text_height + text_spacing) / 1.5))
-                canvas.blit(text_grids, (0, (text_height + text_spacing) / 1.5 * 2))
-                canvas.blit(text_mouse, (0, (text_height + text_spacing) / 1.5 * 3))
-                if pause:
-                    canvas.blit(text_please, (resolution[0] / 2 - 140, 32))
+                canvas.blit(text_window, (0, (text_size + text_spacing) / 1.5))
+                canvas.blit(text_grids, (0, (text_size + text_spacing) / 1.5 * 2))
+                canvas.blit(text_mouse, (0, (text_size + text_spacing) / 1.5 * 3))
 
-                canvas.blit(banner_blue, (resolution[0] / 2 - 45, 0))
-                canvas.blit(banner_vs, (resolution[0] / 2, 0))
-                canvas.blit(banner_red, (resolution[0] / 2 + 60, 0))
+                height_now = 0
+                for texts in server.get_banners(frame_id, resolution):
+                    content = []
+                    width, height = 0, 0
+                    for text in texts:
+                         text = banner_formatter.render(text[0], True, pygame.Color(*text[1]))
+                         content.append((text, width))
+                         width += text.get_width()
+                         height = max(height, text.get_height())
+                    start = (resolution[0] - width) / 2.0
+                    for b in content:
+                        canvas.blit(b[0], (start + b[1], height_now))
+                    height_now += height + banner_spacing
+
+                endscreen_texts = server.get_endscreen(frame_id)
+                if endscreen_texts:
+                    total_height = 0
+                    endscreen_contents = []
+                    endscreen = pygame.Surface(resolution)
+                    endscreen.set_alpha(230)
+                    endscreen.fill(background_rgb)
+                    for texts in endscreen_texts:
+                        content = []
+                        height = 0
+                        for text in texts:
+                            text = bigscreen_formatter.render(text[0], True, pygame.Color(*text[1]))
+                            content.append([text])
+                            height = max(height, text.get_height())
+                        total_height += height + bigscreen_spacing
+                        endscreen_contents.append(content)
+
+                    total_height -= bigscreen_spacing
+                    for content in endscreen_contents:
+                        height, total_width = 0, 0
+                        for b in content:
+                            b.append(total_width)
+                            total_width += b[0].get_width()
+                            height = max(height, b[0].get_height())
+                        width_now = (resolution[0] - total_width) / 2.0
+                        for b in content:
+                            endscreen.blit(b[0], (width_now + b[1], resolution[1] / 2.0 - total_height + height))
+                        height_now += height + bigscreen_spacing
+                    canvas.blit(endscreen, (0, 0))
 
             pygame.display.update()
             clock.tick(fps_soft_bound)

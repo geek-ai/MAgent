@@ -1,11 +1,12 @@
 import math
 import time
+
+import matplotlib.pyplot as plt
 import numpy as np
 
 import magent
-from magent.server import BaseServer
 from magent.builtin.tf_model import DeepQNetwork
-import matplotlib.pyplot as plt
+from magent.renderer.server import BaseServer
 
 
 def load_config(map_size):
@@ -22,7 +23,7 @@ def load_config(map_size):
         {'width': 1, 'length': 1, 'hp': 10, 'speed': 2,
          'view_range': gw.CircleRange(6), 'attack_range': gw.CircleRange(1.5),
          'damage': 2, 'step_recover': 0.1,
-         'step_reward': -0.001,  'kill_reward': 100, 'dead_penalty': -0.05, 'attack_penalty': -1,
+         'step_reward': -0.001, 'kill_reward': 100, 'dead_penalty': -0.05, 'attack_penalty': -1,
          })
 
     g0 = cfg.add_group(small)
@@ -59,8 +60,8 @@ def generate_map(env, map_size, handles):
     n = init_num
     side = int(math.sqrt(n)) * 2
     pos = []
-    for x in range(width//2 - gap - side, width//2 - gap - side + side, 2):
-        for y in range((height - side)//2, (height - side)//2 + side, 2):
+    for x in range(width // 2 - gap - side, width // 2 - gap - side + side, 2):
+        for y in range((height - side) // 2, (height - side) // 2 + side, 2):
             pos.append([x, y, 0])
     env.add_agents(handles[leftID], method="custom", pos=pos)
 
@@ -68,14 +69,14 @@ def generate_map(env, map_size, handles):
     n = init_num
     side = int(math.sqrt(n)) * 2
     pos = []
-    for x in range(width//2 + gap, width//2 + gap + side, 2):
-        for y in range((height - side)//2, (height - side)//2 + side, 2):
+    for x in range(width // 2 + gap, width // 2 + gap + side, 2):
+        for y in range((height - side) // 2, (height - side) // 2 + side, 2):
             pos.append([x, y, 0])
     env.add_agents(handles[rightID], method="custom", pos=pos)
 
 
 class BattleServer(BaseServer):
-    def __init__(self, path="data/battle_model"):
+    def __init__(self, path="data/battle_model", total_step=1000, add_counter=10, add_interval=50):
         # some parameter
         map_size = 125
         eps = 0.05
@@ -91,7 +92,7 @@ class BattleServer(BaseServer):
         # load model
         models[0].load(path, 0, 'trusty-l')
         models[1].load(path, 0, 'trusty-r')
-        
+
         # init environment
         env.reset()
         generate_map(env, map_size, handles)
@@ -102,16 +103,14 @@ class BattleServer(BaseServer):
         self.eps = eps
         self.models = models
         self.map_size = map_size
+        self.total_step = total_step
+        self.add_interval = add_interval
+        self.add_counter = add_counter
         print(env.get_view2attack(handles[0]))
         plt.show()
 
-    def get_group_info(self):
-        ret = self.env._get_groups_info()
-        return ret
-
-    def get_static_info(self):
-        ret = self.env._get_walls_info()
-        return {'wall': ret}
+    def get_info(self):
+        return (self.map_size, self.map_size), self.env._get_groups_info(), {'wall': self.env._get_walls_info()}
 
     def step(self):
         handles = self.handles
@@ -128,11 +127,11 @@ class BattleServer(BaseServer):
             counter.append(np.zeros(shape=env.get_action_space(handles[i])))
             for j in acts:
                 counter[-1][j] += 1
-        #plt.clf()
-        #for c in counter:
+        # plt.clf()
+        # for c in counter:
         #    plt.bar(range(len(c)), c / np.sum(c))
-        #plt.draw()
-        #plt.pause(1e-8)
+        # plt.draw()
+        # plt.pause(1e-8)
 
         # code for checking the correctness of observation
         # for channel in range(7):
@@ -168,7 +167,7 @@ class BattleServer(BaseServer):
         pos = []
         x = np.random.randint(0, self.map_size - 1)
         y = np.random.randint(0, self.map_size - 1)
-        for i in range(-5, 6):
+        for i in range(-5, 5):
             for j in range(-5, 6):
                 pos.append((x + i, y + j))
         self.env.add_agents(self.handles[g ^ 1], method="custom", pos=pos)
@@ -176,5 +175,58 @@ class BattleServer(BaseServer):
     def get_map_size(self):
         return self.map_size, self.map_size
 
-    def get_numbers(self):
-        return self.env.get_num(self.handles[0]), self.env.get_num(self.handles[1])
+    def get_banners(self, frame_id, resolution):
+        red = '{}'.format(self.env.get_num(self.handles[0])), (200, 0, 0)
+        vs = ' vs ', (0, 0, 0)
+        blue = '{}'.format(self.env.get_num(self.handles[1])), (0, 0, 200)
+        result = [(red, vs, blue)]
+
+        tmp = '{} chance(s) remained'.format(
+            max(0, self.add_counter)), (0, 0, 0)
+        result.append((tmp,))
+
+        tmp = '{} / {} steps'.format(frame_id, self.total_step), (0, 0, 0)
+        result.append((tmp,))
+        if frame_id % self.add_interval == 0 and frame_id < self.total_step and self.add_counter > 0:
+            tmp = 'Please press your left mouse button to add agents', (0, 0, 0)
+            result.append((tmp,))
+        return result
+
+    def get_status(self, frame_id):
+        if frame_id % self.add_interval == 0 and self.add_counter > 0:
+            return False
+        elif frame_id >= self.total_step:
+            return None
+        else:
+            return True
+
+    def keydown(self, frame_id, key, mouse_x, mouse_y):
+        return False
+
+    def mousedown(self, frame_id, pressed, mouse_x, mouse_y):
+        if frame_id % self.add_interval == 0 and frame_id < self.total_step and pressed[0] and self.add_counter > 0:
+            self.add_counter -= 1
+            pos = []
+            for i in range(-5, 5):
+                for j in range(-5, 5):
+                    pos.append((mouse_x + i, mouse_y + j))
+            self.env.add_agents(self.handles[0], method="custom", pos=pos)
+
+            pos = []
+            x = np.random.randint(0, self.map_size - 1)
+            y = np.random.randint(0, self.map_size - 1)
+            for i in range(-5, 6):
+                for j in range(-5, 6):
+                    pos.append((x + i, y + j))
+            self.env.add_agents(self.handles[1], method="custom", pos=pos)
+            return True
+        return False
+
+    def get_endscreen(self, frame_id):
+        if frame_id == self.total_step:
+            if self.env.get_num(self.handles[0]) > self.env.get_num(self.handles[1]):
+                return [(("You", (200, 0, 0)), (" win! :)", (0, 0, 0)))]
+            else:
+                return [(("You", (200, 0, 0)), (" lose. :(", (0, 0, 0)))]
+        else:
+            return []

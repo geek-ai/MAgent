@@ -1,11 +1,10 @@
-import math
 import time
-import random
+
 import numpy as np
 
 import magent
-from magent.server import BaseServer
 from magent.builtin.tf_model import DeepQNetwork
+from magent.renderer.server import BaseServer
 from magent.utility import FontProvider
 
 
@@ -300,6 +299,26 @@ def generate_map(env, map_size, goal_handle, handles, messages, font):
 
 
 class ArrangeServer(BaseServer):
+    def get_banners(self, frame_id, resolution):
+        return []
+
+    def keydown(self, frame_id, key, mouse_x, mouse_y):
+        return False
+
+    def get_status(self, frame_id):
+        return True
+
+    def get_endscreen(self, frame_id):
+        return []
+
+    def mousedown(self, frame_id, key, mouse_x, mouse_y):
+        return False
+
+    def get_info(self):
+        ret = self.env._get_groups_info()
+        ret[1] = ret[0]
+        return (self.map_size, self.map_size), ret, {'wall': self.env._get_walls_info()}
+
     def __init__(self, path="data/arrange_model", messages=None):
         # some parameter
         map_size = 250
@@ -334,15 +353,6 @@ class ArrangeServer(BaseServer):
         self.num = None
 
         self.ct = 0
-
-    def get_group_info(self):
-        ret = self.env._get_groups_info()
-        ret[1] = ret[0]
-        return ret
-
-    def get_static_info(self):
-        ret = self.env._get_walls_info()
-        return {'wall': ret}
 
     def step(self):
         handles = self.handles
