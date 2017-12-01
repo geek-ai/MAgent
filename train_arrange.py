@@ -13,7 +13,7 @@ from magent.builtin.tf_model import DeepQNetwork as RLModel
 from magent.utility import FontProvider
 
 
-def dfs(x, y, width, height, unit):
+def dfs(x, y, width, height, unit, wall_set):
     pos = set()
     trace = list()
     pos.add((x, y))
@@ -29,23 +29,31 @@ def dfs(x, y, width, height, unit):
         if flag == 4:
             cur_pos = trace[-1]
             trace.pop()
-            if random.choice(range(2)) == 0:
-                if d == 0:
-                    for i in range(0, unit):
-                        for j in range(0, unit):
-                            pos_list.append((cur_pos[0] + i, cur_pos[1] + unit + j))
-                elif d == 1:
-                    for i in range(0, unit):
-                        for j in range(0, unit):
-                            pos_list.append((cur_pos[0] - unit + i, cur_pos[1] + j))
-                elif d == 2:
-                    for i in range(0, unit):
-                        for j in range(0, unit):
-                            pos_list.append((cur_pos[0] + i, cur_pos[1] - unit + j))
-                elif d == 3:
-                    for i in range(0, unit):
-                        for j in range(0, unit):
-                            pos_list.append((cur_pos[0] + unit + i, cur_pos[1] + j))
+            # if random.choice(range(2)) == 0:
+            #     if d == 0:
+            #         for i in range(0, unit):
+            #             for j in range(0, unit):
+            #                 temp = (cur_pos[0] + i, cur_pos[1] + unit + j)
+            #                 if temp in wall_set:
+            #                     wall_set.remove(temp)
+            #     elif d == 1:
+            #         for i in range(0, unit):
+            #             for j in range(0, unit):
+            #                 temp = (cur_pos[0] - unit + i, cur_pos[1] + j)
+            #                 if temp in wall_set:
+            #                     wall_set.remove(temp)
+            #     elif d == 2:
+            #         for i in range(0, unit):
+            #             for j in range(0, unit):
+            #                 temp = (cur_pos[0] + i, cur_pos[1] - unit + j)
+            #                 if temp in wall_set:
+            #                     wall_set.remove(temp)
+            #     elif d == 3:
+            #         for i in range(0, unit):
+            #             for j in range(0, unit):
+            #                 temp = (cur_pos[0] + unit + i, cur_pos[1] + j)
+            #                 if temp in wall_set:
+            #                     wall_set.remove(temp)
             flag = 0
         if len(trace) == 0:
             break
@@ -65,24 +73,31 @@ def dfs(x, y, width, height, unit):
             if d == 0:
                 for i in range(0, unit):
                     for j in range(0, unit):
-                        pos_list.append((cur_pos[0] + i, cur_pos[1] + unit + j))
+                        temp = (cur_pos[0] + i, cur_pos[1] + unit + j)
+                        if temp in wall_set:
+                            wall_set.remove(temp)
             elif d == 1:
                 for i in range(0, unit):
                     for j in range(0, unit):
-                        pos_list.append((cur_pos[0] - unit + i, cur_pos[1] + j))
+                        temp = (cur_pos[0] - unit + i, cur_pos[1] + j)
+                        if temp in wall_set:
+                            wall_set.remove(temp)
             elif d == 2:
                 for i in range(0, unit):
                     for j in range(0, unit):
-                        pos_list.append((cur_pos[0] + i, cur_pos[1] - unit + j))
+                        temp = (cur_pos[0] + i, cur_pos[1] - unit + j)
+                        if temp in wall_set:
+                            wall_set.remove(temp)
             elif d == 3:
                 for i in range(0, unit):
                     for j in range(0, unit):
-                        pos_list.append((cur_pos[0] + unit + i, cur_pos[1] + j))
+                        temp = (cur_pos[0] + unit + i, cur_pos[1] + j)
+                        if temp in wall_set:
+                            wall_set.remove(temp)
 
             trace.append(tuple(cur_pos))
             pos.add(tuple(cur_pos))
             d = random.choice(range(4))
-    return pos_list
 
 
 def clean_pos_set_convert_to_list(pos_set, pos_list):
@@ -146,16 +161,54 @@ def create_maze(pos, width, height, unit, font_area):
     # temp.extend(dfs(pos[0] + font_area[0] - unit, pos[1] + height * unit, (height + 1) * unit,
     #                 font_area[1] - (height + 1) * unit, unit))
     # new
-    temp = dfs(pos[0] + 2, pos[1] + 2, (width - 1) * unit, (height - 1) * unit, unit)  # north
-    temp.extend(dfs(pos[0] + 2, pos[1] + height * unit, (height - 1) * unit, (width - 1) * unit, unit))  # west
-    temp.extend(dfs(pos[0] + height * unit, pos[1] + font_area[1] - unit, (width - height) * unit, (height - 1) * unit, unit))  # south
-    temp.extend(dfs(pos[0] + font_area[0] - unit, pos[1] + height * unit, (height - 1) * unit,
-                    font_area[1] - (height + 1) * unit, unit))  # east
+    # temp = dfs(pos[0] + 2, pos[1] + 2, (width - 1) * unit, (height - 1) * unit, unit)  # north
+    # temp.extend(dfs(pos[0] + 2, pos[1] + (height - 2) * unit, (height - 1) * unit, (width + 3) * unit, unit))  # west
+    # temp.extend(dfs(pos[0] + height * unit, pos[1] + font_area[1] - unit, (width - height) * unit, (height - 1) * unit, unit))  # south
+    # temp.extend(dfs(pos[0] + font_area[0] - unit, pos[1] + (height - 2) * unit, (height - 1) * unit,
+    #                 font_area[1] - (height + 1) * unit, unit))  # east
 
+    dfs(pos[0] + 2, pos[1] + 2, (width - 1) * unit, (height - 1) * unit, unit, pos_set)  # north
+    dfs(pos[0] + 2, pos[1] + (height - 2) * unit, (height - 1) * unit, (width + 3) * unit, unit, pos_set)  # west
+    dfs(pos[0] + height * unit, pos[1] + font_area[1] - unit, (width - height) * unit, (height - 1) * unit, unit, pos_set)  # south
+    dfs(pos[0] + font_area[0] - unit, pos[1] + (height - 2) * unit, (height - 1) * unit, font_area[1] - (height + 1) * unit, unit, pos_set)  # east
+
+    temp = []
     temp.extend(open_the_door(pos[0], pos[1], font_area[0] + height * unit, font_area[1] + height * unit, unit))
     res = clean_pos_set_convert_to_list(pos_set, temp)
     return res
     # return pos_set
+
+
+def draw_split_line(x, y, width, height, split=10):
+    pos_set = []
+    if height > width:
+        splits = set(np.random.choice(height // 2, split) * 2)
+        for r in range(height):
+            if r in splits or (r - 1 in splits):
+                continue
+            for c in range(width):
+                pos_set.append((x + c, y + r))
+    else:
+        splits = set(np.random.choice(width // 2, split) * 2)
+        for r in range(height):
+            for c in range(width):
+                if c in splits or (c - 1 in splits):
+                    continue
+                pos_set.append((x + c, y + r))
+
+    return pos_set
+
+
+def create_naive_maze(pos, width, height, unit, font_area):
+    pos_set = []
+    for i in range(height):
+        if i % 2 == 0:
+            pos_set.extend(draw_split_line(pos[0], pos[1] + i * unit, width * unit, unit))
+            pos_set.extend(draw_split_line(pos[0], pos[1] + font_area[1] + i * unit, width * unit, unit))
+            pos_set.extend(draw_split_line(pos[0] + i * unit, pos[1] + height * unit, unit, font_area[1] - height * unit))
+            pos_set.extend(draw_split_line(pos[0] + font_area[0] + i * unit, pos[1] + height * unit, unit, font_area[1] - height * unit))
+
+    return pos_set
 
 
 def load_config(map_size):
@@ -194,7 +247,7 @@ def load_config(map_size):
     return cfg
 
 
-def generate_map(env, map_size, goal_handle, handles):
+def generate_map(env, map_size, goal_handle, handles, rnd):
     # random message
     font = FontProvider('data/font_8x8/basic.txt')
     n_msg = random.randint(1, 4)
@@ -210,7 +263,8 @@ def generate_map(env, map_size, goal_handle, handles):
 
     # create maze: left pos, width, height
     radius = 90
-    pos_list = create_maze([center_x - radius, center_y - radius], radius + 1, 15, 2, font_area=[radius * 2 - 28, radius * 2 - 28])
+    # pos_list = create_maze([center_x - radius, center_y - radius], radius + 1, 15, 2, font_area=[radius * 2 - 28, radius * 2 - 28])
+    pos_list = create_naive_maze([center_x - radius, center_y - radius], radius + 1, 15, 2, font_area=[radius * 2 - 28, radius * 2 - 28])
     env.add_walls(method="custom", pos=pos_list)
 
     def add_square(pos, side, gap):
@@ -223,14 +277,16 @@ def generate_map(env, map_size, goal_handle, handles):
             pos.append([center_x + side//2, y])
 
     # goal
-    pos = []
-    add_square(pos, map_size * 0.75, 10)
-    add_square(pos, map_size * 0.61, 10)
-    add_square(pos, map_size * 0.47, 12)
-    add_square(pos, map_size * 0.39, 12)
-    env.add_agents(goal_handle, method="custom", pos=pos)
+    circle_goal_num = 0
+    if rnd is not None and rnd < 1000:
+        pos = []
+        add_square(pos, map_size * 0.75, 10)
+        add_square(pos, map_size * 0.61, 10)
+        add_square(pos, map_size * 0.47, 12)
+        add_square(pos, map_size * 0.39, 12)
+        env.add_agents(goal_handle, method="custom", pos=pos)
 
-    circle_goal_num = env.get_num(goal_handle)
+        circle_goal_num = env.get_num(goal_handle)
 
     def draw(base_x, base_y, scale, data):
         w, h = len(data), len(data[0])
@@ -267,15 +323,15 @@ def generate_map(env, map_size, goal_handle, handles):
     add_square(pos, map_size * 0.80, 1)
 
     pos = np.array(pos)
-    pos = pos[np.random.choice(np.arange(len(pos)), int(circle_goal_num + alpha_goal_num * 1.2), replace=False)]
+    pos = pos[np.random.choice(np.arange(len(pos)), int(circle_goal_num + alpha_goal_num * 1.25), replace=False)]
 
     env.add_agents(handles[0], method="custom", pos=pos)
 
 
 def play_a_round(env, map_size, food_handle, handles, models, train_id=-1,
-                 print_every=10, record=False, render=False, eps=None):
+                 print_every=10, record=False, render=False, eps=None, rnd=None):
     env.reset()
-    generate_map(env, map_size, food_handle, handles)
+    generate_map(env, map_size, food_handle, handles, rnd)
 
     step_ct = 0
     total_reward = 0
@@ -383,8 +439,8 @@ def play_a_round(env, map_size, food_handle, handles, models, train_id=-1,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--save_every", type=int, default=2)
-    parser.add_argument("--render_every", type=int, default=1)
-    parser.add_argument("--n_round", type=int, default=1500)
+    parser.add_argument("--render_every", type=int, default=2)
+    parser.add_argument("--n_round", type=int, default=2000)
     parser.add_argument("--render", action='store_true')
     parser.add_argument("--load_from", type=int)
     parser.add_argument("--train", action="store_true")
@@ -460,7 +516,7 @@ if __name__ == "__main__":
                 play_a_round(env, args.map_size, food_handle, player_handles, models,
                              train_id, record=False,
                              render=args.render or (k+1) % args.render_every == 0,
-                             print_every=args.print_every, eps=eps)
+                             print_every=args.print_every, eps=eps, rnd=k)
             log.info("round %d\t loss: %.3f\t reward: %.2f\t value: %.3f\t pos_reward_ct: %d\t fill: %.2f"
                      % (k, loss, reward, value, pos_reward_ct, fill_rate))
             print("round time %.2f  total time %.2f\n" % (time.time() - tic, time.time() - start))
