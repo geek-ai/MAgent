@@ -203,6 +203,29 @@ def has_gpu():
     return ret.find("GPU") != -1
 
 
+def download_file(filename, url):
+    import urllib2
+    print("Download %s from %s..." % (filename, url))
+
+    file = urllib2.urlopen(url)
+    with open(filename, 'wb') as fout:
+        fout.write(file.read())
+
+    # os.system("wget -O %s '%s'" % (filename, url))
+
+    print("download done!")
+
+
+def download_model(url):
+    name = os.path.join('data', 'model.tar.gz')
+    download_file(name, url)
+    def do_commond(cmd):
+        print(cmd)
+        os.system(cmd)
+    do_commond("tar xzf %s -C data" % name)
+    do_commond("rm %s" % name)
+
+
 class FontProvider:
     """provide pixel font"""
     def __init__(self, filename):

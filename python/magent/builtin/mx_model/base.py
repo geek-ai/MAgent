@@ -50,7 +50,7 @@ class MXBaseModel(BaseModel):
         pre = os.path.join(dir_name, self.subclass_name)
         self.model.save_checkpoint(pre, epoch, save_optimizer_states=True)
 
-    def load(self, dir_name, epoch=0):
+    def load(self, dir_name, epoch=0, name=None):
         """save model to dir
 
         Parameters
@@ -59,7 +59,8 @@ class MXBaseModel(BaseModel):
             name of the directory
         epoch: int
         """
-        dir_name = os.path.join(dir_name, self.name)
+        name = name or self.name
+        dir_name = os.path.join(dir_name, name)
         pre = os.path.join(dir_name, self.subclass_name)
         _, arg_params, aux_params = mx.model.load_checkpoint(pre, epoch)
         self.model.set_params(arg_params, aux_params, force_init=True)

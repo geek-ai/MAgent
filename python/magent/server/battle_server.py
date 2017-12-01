@@ -89,8 +89,8 @@ class BattleServer(BaseServer):
         models.append(DeepQNetwork(env, handles[1], 'trusty-r', use_conv=True))
 
         # load model
-        models[0].load(path, 1224, 'trusty-l')
-        models[1].load(path, 1219, 'trusty-r')
+        models[0].load(path, 0, 'trusty-l')
+        models[1].load(path, 0, 'trusty-r')
         
         # init environment
         env.reset()
