@@ -181,18 +181,14 @@ class PyGameRenderer(BaseRenderer):
             if pressed[pygame.K_LEFT]:
                 view_position[0] -= move_rate * grid_size
                 need_static_update = True
-                print("left")
             if pressed[pygame.K_RIGHT]:
                 view_position[0] += move_rate * grid_size
                 need_static_update = True
-                print("right")
             if pressed[pygame.K_UP]:
                 view_position[1] -= move_rate * grid_size
                 need_static_update = True
-                print("up")
             if pressed[pygame.K_DOWN]:
                 view_position[1] += move_rate * grid_size
-                print("down")
                 need_static_update = True
 
             if done:
