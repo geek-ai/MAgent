@@ -13,6 +13,6 @@ from magent.renderer.server import BattleServer as Server
 if __name__ == "__main__":
     if not (os.path.exists("data/battle_model/trusty-l/tfdqn_0.index")
             and os.path.exists("data/battle_model/trusty-r/tfdqn_0.index")):
-        magent.utility.download_model("https://od.lk/d/NDFfNjAzNDk0OV8/battle_game.tar.gz")
+        magent.utility.download_model("https://od.lk/d/NDFfNjA2MTU1N18/battle_model.tar.gz")
 
     PyGameRenderer().start(Server())
