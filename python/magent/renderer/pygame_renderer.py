@@ -4,6 +4,7 @@ from __future__ import division
 import math
 
 import pygame
+import numpy as np
 
 from magent.renderer.base_renderer import BaseRenderer
 from magent.renderer.server import BaseServer
@@ -20,11 +21,11 @@ class PyGameRenderer(BaseRenderer):
             animation_stop=0,
             resolution=None,
             fps_soft_bound=60,
-            background_rgb=pygame.Color(255, 255, 255),
-            attack_line_rgb=pygame.Color(0, 0, 0),
-            attack_dot_rgb=pygame.Color(0, 0, 0),
+            background_rgb=(255, 255, 255),
+            attack_line_rgb=(0, 0, 0),
+            attack_dot_rgb=(0, 0, 0),
             attack_dot_size=0.3,
-            text_rgb=pygame.Color(0, 0, 0),
+            text_rgb=(0, 0, 0),
             text_size=16,
             text_spacing=3,
             banner_size=32,
@@ -37,7 +38,7 @@ class PyGameRenderer(BaseRenderer):
             grid_max_size=100,
             zoom_rate=1 / 30,
             move_rate=4,
-            full_screen=True
+            full_screen=False
     ):
         def draw_line(surface, color, a, b):
             pygame.draw.line(
@@ -50,6 +51,28 @@ class PyGameRenderer(BaseRenderer):
             pygame.draw.rect(surface, color, pygame.Rect(
                 map(int, (round(a[0]), round(a[1]), round(w + a[0] - round(a[0])), round(h + a[1] - round(a[1]))))
             ))
+            
+        def draw_rect_matrix(matrix, color, a, w, h, resolution):
+            x, y, w, h = map(int, (round(a[0]), round(a[1]), round(w + a[0] - round(a[0])), round(h + a[1] - round(a[1]))))
+            matrix[max(x, 0):min(x + w, resolution[0]), max(y, 0):min(h + y, resolution[1]), :] = color
+                    
+        def draw_line_matrix(matrix, color, a, b, resolution):
+            a = (min(max(0, a[0]), resolution[0] - 1), min(max(0, a[1]), resolution[1] - 1))
+            b = (min(max(0, b[0]), resolution[0] - 1), min(max(0, b[1]), resolution[1] - 1))
+            a = map(int, (round(a[0]), round(a[1])))
+            b = map(int, (round(b[0]), round(b[1])))
+            if a[0] == b[0]:
+                if a[1] > b[1]:
+                    matrix[a[0], b[1]:a[1] + 1] = color
+                else:
+                    matrix[a[0], a[1]:b[1] + 1] = color
+            elif a[1] == b[1]:
+                if a[0] > b[0]:
+                    matrix[b[0]:a[0] + 1, a[1]] = color
+                else:
+                    matrix[a[0]:b[0] + 1, a[1]] = color
+            else:
+                raise NotImplementedError
 
         if not isinstance(server, BaseServer):
             raise BaseException('property server must be an instance of BaseServer')
@@ -64,7 +87,7 @@ class PyGameRenderer(BaseRenderer):
         clock = pygame.time.Clock()
         
         if full_screen:
-            canvas = pygame.display.set_mode(resolution, pygame.DOUBLEBUF, 0)
+            canvas = pygame.display.set_mode(resolution, pygame.DOUBLEBUF | pygame.FULLSCREEN, 0)
         else:
             canvas = pygame.display.set_mode(resolution, pygame.DOUBLEBUF, 0)
 
@@ -83,9 +106,11 @@ class PyGameRenderer(BaseRenderer):
         old_data = None
         new_data = None
 
-        grids = None
-        show_grid = False
+        need_static_update = True
+        #show_grid = False
         animation_progress = 0
+        
+        grid_map = np.zeros((resolution[0], resolution[1], 3), dtype=np.int16)
 
         while True:
             done = False
@@ -100,10 +125,11 @@ class PyGameRenderer(BaseRenderer):
                     pygame.quit()
                     done = True
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_g:
-                        show_grid = not show_grid
-                    else:
-                        triggered = server.keydown(frame_id, event.key, mouse_x, mouse_y)
+                    #if event.key == pygame.K_g:
+                    #    show_grid = not show_grid
+                    #else:
+                    #    triggered = server.keydown(frame_id, event.key, mouse_x, mouse_y)
+                    triggered = server.keydown(frame_id, event.key, mouse_x, mouse_y)
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 4 or event.button == 5:
                         center_before = (
@@ -112,10 +138,10 @@ class PyGameRenderer(BaseRenderer):
                         )
                         if event.button == 5:
                             grid_size = max(grid_size - grid_size * zoom_rate, grid_min_size)
-                            grids = None
+                            need_static_update = True
                         else:
                             grid_size = min(grid_size + grid_size * zoom_rate, grid_max_size)
-                            grids = None
+                            need_static_update = True
                         center_after = (
                             (view_position[0] + resolution[0] / 2) / grid_size,
                             (view_position[1] + resolution[1] / 2) / grid_size
@@ -141,10 +167,10 @@ class PyGameRenderer(BaseRenderer):
                 )
                 if pressed[pygame.K_COMMA]:
                     grid_size = max(grid_size - grid_size * zoom_rate, grid_min_size)
-                    grids = None
+                    need_static_update = True
                 else:
                     grid_size = min(grid_size + grid_size * zoom_rate, grid_max_size)
-                    grids = None
+                    need_static_update = True
                 center_after = (
                     (view_position[0] + resolution[0] / 2) / grid_size,
                     (view_position[1] + resolution[1] / 2) / grid_size
@@ -154,16 +180,20 @@ class PyGameRenderer(BaseRenderer):
 
             if pressed[pygame.K_LEFT]:
                 view_position[0] -= move_rate * grid_size
-                grids = None
+                need_static_update = True
+                print("left")
             if pressed[pygame.K_RIGHT]:
                 view_position[0] += move_rate * grid_size
-                grids = None
+                need_static_update = True
+                print("right")
             if pressed[pygame.K_UP]:
                 view_position[1] -= move_rate * grid_size
-                grids = None
+                need_static_update = True
+                print("up")
             if pressed[pygame.K_DOWN]:
                 view_position[1] += move_rate * grid_size
-                grids = None
+                print("down")
+                need_static_update = True
 
             if done:
                 break
@@ -182,31 +212,30 @@ class PyGameRenderer(BaseRenderer):
 
             canvas.fill(background_rgb)
 
-            if show_grid:
-                if grids is None:
-                    grids = pygame.Surface(resolution)
-                    grids.set_alpha(grid_rgba[1])
-                    grids.fill(background_rgb)
-
-                    for i in range(x_range[0], x_range[1] + 1):
-                        draw_line(
-                            grids, grid_rgba[0],
-                            (i * grid_size - view_position[0], max(0, view_position[1]) - view_position[1]),
-                            (
-                                i * grid_size - view_position[0],
-                                min(view_position[1] + resolution[1], map_size[1] * grid_size) - view_position[1]
-                            )
-                        )
-                    for i in range(y_range[0], y_range[1] + 1):
-                        draw_line(
-                            grids, grid_rgba[0],
-                            (max(0, view_position[0]) - view_position[0], i * grid_size - view_position[1]),
-                            (
-                                min(view_position[0] + resolution[0], map_size[0] * grid_size) - view_position[0],
-                                i * grid_size - view_position[1]
-                            )
-                        )
-                canvas.blit(grids, (0, 0))
+            #if show_grid:
+            #    if need_static_update or True:
+            #        grids = pygame.Surface(resolution)
+            #        grids.set_alpha(grid_rgba[1])
+            #        grids.fill(background_rgb)
+            #
+            #        for i in range(x_range[0], x_range[1] + 1):
+            #            draw_line(
+            #                canvas, grid_rgba[0],
+            #                (i * grid_size - view_position[0], max(0, view_position[1]) - view_position[1]),
+            #                (
+            #                    i * grid_size - view_position[0],
+            #                    min(view_position[1] + resolution[1], map_size[1] * grid_size) - view_position[1]
+            #                )
+            #            )
+            #        for i in range(y_range[0], y_range[1] + 1):
+            #            draw_line(
+            #                canvas, grid_rgba[0],
+            #                (max(0, view_position[0]) - view_position[0], i * grid_size - view_position[1]),
+            #                (
+            #                    min(view_position[0] + resolution[0], map_size[0] * grid_size) - view_position[0],
+            #                    i * grid_size - view_position[1]
+            #                )
+            #            )
 
             if new_data is None or animation_progress > animation_total + animation_stop:
                 buffered_new_data = server.get_data(
@@ -224,6 +253,17 @@ class PyGameRenderer(BaseRenderer):
             if new_data is not None:
                 if old_data is None and animation_progress == 0:
                     animation_progress = animation_total
+                
+                if need_static_update:
+                    pygame.pixelcopy.surface_to_array(grid_map, canvas)
+                    for wall in walls:
+                        x, y = wall[0], wall[1]
+                        if x >= x_range[0] and x <= x_range[1] and y >= y_range[0] and y <= y_range[1]:
+                            draw_rect_matrix(grid_map, (127, 127, 127),
+                                             (x * grid_size - view_position[0], y * grid_size - view_position[1]),
+                                             grid_size, grid_size, resolution)
+                pygame.pixelcopy.array_to_surface(canvas, grid_map)
+                
                 rate = min(1.0, animation_progress / animation_total)
                 for key in new_data[0]:
                     new_prop = new_data[0][key]
@@ -236,7 +276,7 @@ class PyGameRenderer(BaseRenderer):
                                  zip(old_group, new_group)] if old_group is not None else new_group
 
                     draw_rect(
-                        canvas, pygame.Color(int(now_group[2]), int(now_group[3]), int(now_group[4])),
+                        canvas, (int(now_group[2]), int(now_group[3]), int(now_group[4])),
                         (
                             now_prop[0] * grid_size - view_position[0],
                             now_prop[1] * grid_size - view_position[1]
@@ -244,13 +284,6 @@ class PyGameRenderer(BaseRenderer):
                         now_group[0] * grid_size,
                         now_group[1] * grid_size
                     )
-
-                for wall in walls:
-                    x, y = wall[0], wall[1]
-                    if x >= x_range[0] and x <= x_range[1] and y >= y_range[0] and y <= y_range[1]:
-                        draw_rect(canvas, pygame.Color(127, 127, 127),
-                                  (x *grid_size - view_position[0], y * grid_size - view_position[1]),
-                                  grid_size, grid_size)
 
                 for key, event_x, event_y in new_data[1]:
                     if not key in new_data[0]:
@@ -347,6 +380,8 @@ class PyGameRenderer(BaseRenderer):
                             endscreen.blit(b[0], (width_now + b[1], resolution[1] / 2.0 - total_height + height))
                         height_now += height + bigscreen_spacing
                     canvas.blit(endscreen, (0, 0))
+            if need_static_update:
+                need_static_update = False
 
             pygame.display.update()
             clock.tick(fps_soft_bound)
