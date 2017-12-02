@@ -49,10 +49,17 @@ def generate_map(env, map_size, handles):
 
     # left
     pos = []
-    for y in range(10, height // 2 + 25):
+    for y in range(10, 45):
         pos.append((width / 2 - 5, y))
         pos.append((width / 2 - 4, y))
-    for y in range(height // 2 - 25, height - 10):
+    for y in range(50, height // 2 + 25):
+        pos.append((width / 2 - 5, y))
+        pos.append((width / 2 - 4, y))
+
+    for y in range(height // 2 - 25, height - 50):
+        pos.append((width / 2 + 5, y))
+        pos.append((width / 2 + 4, y))
+    for y in range(height - 45, height - 10):
         pos.append((width / 2 + 5, y))
         pos.append((width / 2 + 4, y))
     env.add_walls(pos=pos, method="custom")
@@ -86,12 +93,12 @@ class BattleServer(BaseServer):
 
         handles = env.get_handles()
         models = []
-        models.append(DeepQNetwork(env, handles[0], 'trusty-l', use_conv=True))
-        models.append(DeepQNetwork(env, handles[1], 'trusty-r', use_conv=True))
+        models.append(DeepQNetwork(env, handles[0], 'trusty-battle-game-l', use_conv=True))
+        models.append(DeepQNetwork(env, handles[1], 'trusty-battle-game-r', use_conv=True))
 
         # load model
-        models[0].load(path, 0, 'trusty-l')
-        models[1].load(path, 0, 'trusty-r')
+        models[0].load(path, 0, 'trusty-battle-game-l')
+        models[1].load(path, 0, 'trusty-battle-game-r')
 
         # init environment
         env.reset()
@@ -216,7 +223,7 @@ class BattleServer(BaseServer):
             x = np.random.randint(0, self.map_size - 1)
             y = np.random.randint(0, self.map_size - 1)
             for i in range(-5, 6):
-                for j in range(-5, 6):
+                for j in range(-5, 5):
                     pos.append((x + i, y + j))
             self.env.add_agents(self.handles[1], method="custom", pos=pos)
             return True
