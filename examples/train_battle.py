@@ -1,5 +1,5 @@
 """
-Train battle, two models in two processings
+Train battle, two models in two processes
 """
 
 import argparse
