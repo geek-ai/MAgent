@@ -1,7 +1,7 @@
 import time
 
 import numpy as np
-
+import random
 import magent
 from magent.builtin.tf_model import DeepQNetwork
 from magent.renderer.server import BaseServer
