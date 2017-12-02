@@ -1,5 +1,5 @@
 """
-Train battle, two models in two processings
+Train script of the battle game
 """
 
 import argparse
@@ -24,10 +24,17 @@ def generate_map(env, map_size, handles):
 
     # left
     pos = []
-    for y in range(10, height // 2 + 25):
+    for y in range(10, 45):
         pos.append((width / 2 - 5, y))
         pos.append((width / 2 - 4, y))
-    for y in range(height // 2 - 25, height - 10):
+    for y in range(50, height // 2 + 25):
+        pos.append((width / 2 - 5, y))
+        pos.append((width / 2 - 4, y))
+
+    for y in range(height // 2 - 25, height - 50):
+        pos.append((width / 2 + 5, y))
+        pos.append((width / 2 + 4, y))
+    for y in range(height - 45, height - 10):
         pos.append((width / 2 + 5, y))
         pos.append((width / 2 + 4, y))
     env.add_walls(pos=pos, method="custom")
