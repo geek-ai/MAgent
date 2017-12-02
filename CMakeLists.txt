@@ -13,7 +13,8 @@ set(LIB_SRC_FILES ${autopilot_sources})
 file(GLOB autopilot_sources src/render/*.cc src/render/*/*.cc src/render/*/*/*.cc)
 set(RENDER_SRC_FILES ${autopilot_sources})
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wno-unused-variable -Wno-reorder -Wno-sign-compare -std=c++11 -O3")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -std=c++11 -O3")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Wno-reorder -Wno-sign-compare -Wno-missing-braces")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -pthread -DDEBUG")
 
 # runtime library

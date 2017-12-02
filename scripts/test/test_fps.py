@@ -3,17 +3,21 @@
 import os
 import sys
 import magent
+import argparse
 
-tmp_name = 'tmp'
 
 if len(sys.argv) < 2:
     print("usage python test_fps.py max_gpu frame")
 
-if len(sys.argv) == 3:
-    tmp_name += sys.argv[2]
+parser = argparse.ArgumentParser()
+parser.add_argument("--max_gpu", type=int, default=0)
+parser.add_argument("--frame", type=str, default='tf')
+parser.add_argument("--name", type=str, default="")
+args = parser.parse_args()
 
-max_gpu = eval(sys.argv[1])
-framework = sys.argv[2]
+tmp_name = 'tmp-' + args.tmp_name
+max_gpu = args.max_gpu
+framework = args.frame
 
 number = [1000, 10000, 100000, 1000000]
 gpus   = range(max_gpu+1)
@@ -25,7 +29,7 @@ for n in number:
     for g in gpus:
         n_step = 30000000 / n
         cmd = ("python scripts/test/test_1m.py --n_step %d --agent_number %d --num_gpu %d --frame %s > /dev/shm/aha "
-                "&& cat /dev/shm/aha | grep FPS > %s" % (n_step, n, g, framework, tmp_name))
+               "&& cat /dev/shm/aha | grep FPS > %s" % (n_step, n, g, framework, tmp_name))
         if n < 1000000:
             cmd = 'OMP_NUM_THREADS=8  ' + cmd
         else:
