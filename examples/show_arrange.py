@@ -16,8 +16,8 @@ if __name__ == "__main__":
     #     print("Usage: python show_arrange.py messages...")
     #     exit()
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", type=int, default=0)
-    parser.add_argument("--mess", type=str, nargs="+")
+    parser.add_argument("--mode", type=int, default=0, help="0: without maze, 1: adding a maze")
+    parser.add_argument("--mess", type=str, nargs="+", help="words you wanna print", required=True)
     args = parser.parse_args()
 
     if not os.path.exists("data/arrange_model/arrange/tfdqn_10.index"):
