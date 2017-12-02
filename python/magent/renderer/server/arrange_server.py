@@ -230,7 +230,7 @@ def load_config(map_size):
     return cfg
 
 
-def generate_map(env, map_size, goal_handle, handles, messages, font):
+def generate_map(mode, env, map_size, goal_handle, handles, messages, font):
     # pre-process message
     max_len = 8
     new = []
@@ -245,9 +245,10 @@ def generate_map(env, map_size, goal_handle, handles, messages, font):
     center_x, center_y = map_size // 2, map_size // 2
 
     # create maze
-    radius = 90
-    pos_list = create_maze([center_x - radius, center_y - radius], radius + 1, 15, 2, font_area=[radius * 2 - 28, radius * 2 - 28])
-    env.add_walls(method="custom", pos=pos_list)
+    if mode == 1:
+        radius = 90
+        pos_list = create_maze([center_x - radius, center_y - radius], radius + 1, 15, 2, font_area=[radius * 2 - 28, radius * 2 - 28])
+        env.add_walls(method="custom", pos=pos_list)
 
     def add_square(pos, side, gap):
         side = int(side)
@@ -322,7 +323,7 @@ class ArrangeServer(BaseServer):
         ret[1] = ret[0]
         return (self.map_size, self.map_size), ret, {'wall': self.env._get_walls_info()}
 
-    def __init__(self, path="data/arrange_model", messages=None):
+    def __init__(self, path="data/arrange_model", messages=None, mode=1):
         # some parameter
         map_size = 250
         eps = 0.15
@@ -341,7 +342,7 @@ class ArrangeServer(BaseServer):
 
         # init environment
         env.reset()
-        generate_map(env, map_size, food_handle, handles, messages, font)
+        generate_map(mode, env, map_size, food_handle, handles, messages, font)
 
         # save to member variable
         self.env = env
