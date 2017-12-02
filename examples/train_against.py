@@ -40,13 +40,14 @@ def generate_map(env, map_size, handles):
     env.add_agents(handles[rightID], method="custom", pos=pos)
 
 
-def play_a_round(env, map_size, handles, models, print_every, eps, step_batch_size=None, train=True, render=False):
+def play_a_round(env, map_size, handles, models, print_every, eps, step_batch_size=None, train=True,
+                 train_id=1, render=False):
+    """play a round of game"""
     env.reset()
     generate_map(env, map_size, handles)
 
     step_ct = 0
     done = False
-    train_id = 0
 
     n = len(handles)
     obs  = [[] for _ in range(n)]
@@ -143,7 +144,7 @@ if __name__ == "__main__":
     parser.add_argument("--greedy", action="store_true")
     parser.add_argument("--name", type=str, default="against")
     parser.add_argument("--eval", action="store_true")
-    parser.add_argument("--opponent", type=int, default=1)
+    parser.add_argument("--opponent", type=int, default=0)
     parser.add_argument('--alg', default='dqn', choices=['dqn', 'drqn', 'a2c'])
 
     args = parser.parse_args()
@@ -173,7 +174,18 @@ if __name__ == "__main__":
     unroll_step = 16
     train_freq = 5
 
+
     models = []
+
+    # load opponent
+    if args.opponent >= 0:
+        from magent.builtin.tf_model import DeepQNetwork
+        models.append(magent.ProcessingModel(env, handles[1], names[1], 0, DeepQNetwork))
+        models[0].load("data/battle_model", args.opponent)
+    else:
+        models.append(magent.ProcessingModel(env, handles[1], names[1], 0, RandomActor))
+
+    # load our model
     if args.alg == 'dqn':
         from magent.builtin.tf_model import DeepQNetwork
         models.append(magent.ProcessingModel(env, handles[0], names[0], 1000, DeepQNetwork,
@@ -204,14 +216,6 @@ if __name__ == "__main__":
     else:
         start_from = 0
 
-    # load opponent
-    if args.opponent >= 0:
-        from magent.builtin.tf_model import DeepQNetwork
-        models.append(magent.ProcessingModel(env, handles[1], names[1], 0, DeepQNetwork))
-        models[1].load("data/battle_model", args.opponent)
-    else:
-        models.append(magent.ProcessingModel(env, handles[1], names[1], 0, RandomActor))
-
     # print debug info
     print(args)
     print("view_size", env.get_view_space(handles[0]))
@@ -222,10 +226,10 @@ if __name__ == "__main__":
     for k in range(start_from, start_from + args.n_round):
         tic = time.time()
         train_eps = magent.utility.piecewise_decay(k, [0, 100, 250], [1, 0.1, 0.05]) if not args.greedy else 0
-        opponent_eps = train_eps if k < 0 else 0.05  # curriculum learning in first 100 steps
+        opponent_eps = train_eps if k < 0 else 0.05  # can use curriculum learning in first 100 steps
 
         loss, num, reward, value = play_a_round(env, args.map_size, handles, models,
-                                                eps=[train_eps, opponent_eps], step_batch_size=step_batch_size,
+                                                eps=[opponent_eps, train_eps], step_batch_size=step_batch_size,
                                                 train=args.train,
                                                 print_every=50,
                                                 render=args.render or (k+1) % args.render_every == 0)  # for e-greedy

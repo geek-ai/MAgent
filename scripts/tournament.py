@@ -15,12 +15,10 @@ def play(env, handles, models, map_size, leftID, rightID, eps=0.05):
     env.reset()
 
     # generate map
-    width = map_size
-    height = map_size
-
+    width = height = map_size
     init_num = map_size * map_size * 0.04
-
     gap = 3
+
     # left
     n = init_num
     side = int(math.sqrt(n)) * 2
@@ -63,7 +61,7 @@ def play(env, handles, models, map_size, leftID, rightID, eps=0.05):
         env.clear_dead()
 
         step_ct += 1
-        if step_ct > 500:
+        if step_ct > 550:
             break
 
     return nums
@@ -87,12 +85,12 @@ def extract_model_names(savedir, name, model_class, begin=0, pick_every=4):
 
 
 if __name__ == '__main__':
-    map_size = 100
+    map_size = 125
     env = magent.GridWorld("battle", map_size=map_size)
     env.set_render_dir("build/render")
 
     # scan file names
-    model_name = extract_model_names('save_model', 'selfplay', DeepQNetwork, begin=0, pick_every=5)
+    model_name = extract_model_names('save_model', 'battle', DeepQNetwork, begin=0, pick_every=5)
 
     print("total models = %d" % len(model_name))
     print("models", [x[:-1] for x in model_name])

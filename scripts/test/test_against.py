@@ -6,7 +6,7 @@ task = [
     {
         "name": "against",
         "type": "single-search",
-        "prefix": "python examples/train_against.py --train --save_every 100 --n_round 450",
+        "prefix": "python examples/train_against.py --train --save_every 100 --n_round 500",
         "arg_name": "--alg",
         "arg_value": ["a2c", "drqn", "dqn"]
     }
