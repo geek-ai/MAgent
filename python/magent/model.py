@@ -1,8 +1,14 @@
 
 """ base models class"""
 
+try:
+    import thread
+except ImportError:
+    import _thread as thread
+
 import multiprocessing
 import multiprocessing.connection
+import sys
 
 import numpy as np
 
@@ -63,6 +69,7 @@ class BaseModel:
 
 
 class NDArrayPackage:
+    """wrapper for transferring numpy arrays by bytes"""
     def __init__(self, *args):
         if isinstance(args[0], np.ndarray):
             self.data = args
@@ -71,15 +78,38 @@ class NDArrayPackage:
             self.data = None
             self.info = args[0]
 
-    def send_to(self, conn):
+        self.max_len = (1 << 30) / 4
+
+    def send_to(self, conn, use_thread=False):
         assert self.data is not None
-        for x in self.data:
-            conn.send_bytes(x)
+
+        def send_thread():
+            for x in self.data:
+                if np.prod(x.shape)  > self.max_len:  #
+                    seg = int(self.max_len // np.prod(x.shape[1:]))
+                    for pt in range(0, len(x), seg):
+                        conn.send_bytes(x[pt:pt+seg])
+                else:
+                    conn.send_bytes(x)
+
+        if use_thread:
+            thread.start_new_thread(send_thread, ())
+        else:
+            send_thread()
 
     def recv_from(self, conn):
-        bufs = [np.empty(shape=x[0], dtype=x[1]) for x in self.info]
-        for buf in bufs:
-            conn.recv_bytes_into(buf)
+        bufs = []
+        for info in self.info:
+            buf = np.empty(shape=(int(np.prod(info[0])),), dtype=info[1])
+
+            item_size = int(np.prod(info[0][1:]))
+            if np.prod(info[0]) > self.max_len:
+                seg = int(self.max_len // item_size)
+                for pt in range(0, int(np.prod(info[0])), seg * item_size):
+                    conn.recv_bytes_into(buf[pt:pt+seg * item_size])
+            else:
+               conn.recv_bytes_into(buf)
+            bufs.append(buf.reshape(info[0]))
         return bufs
 
 
@@ -97,6 +127,8 @@ class ProcessingModel(BaseModel):
         handle: group handle
         name: str
             name of the model (be used when store model)
+        port: int
+            port of socket or suffix of pipe
         sample_buffer_capacity: int
             the maximum number of samples (s,r,a,s') to collect in a game round
         RLModel: BaseModel
@@ -111,7 +143,7 @@ class ProcessingModel(BaseModel):
         kwargs['env'] = env
         kwargs['handle'] = handle
         kwargs['name'] = name
-        addr = 'localhost' + str(port)  # named pipe
+        addr = 'magent-pipe-' + str(port)  # named pipe
         proc = multiprocessing.Process(
             target=model_client,
             args=(addr, sample_buffer_capacity, RLModel, kwargs),
@@ -159,12 +191,12 @@ class ProcessingModel(BaseModel):
         """
 
         package = NDArrayPackage(raw_obs[0], raw_obs[1], ids)
-        self.conn.send(["act",
-                        policy, eps, package.info])
-        package.send_to(self.conn)
+        self.conn.send(["act", policy, eps, package.info])
+        package.send_to(self.conn, use_thread=True)
 
         if block:
-            return self.conn.recv()
+            info = self.conn.recv()
+            return NDArrayPackage(info).recv_from(self.conn)[0]
         else:
             return None
 

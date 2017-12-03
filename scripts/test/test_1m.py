@@ -82,8 +82,8 @@ if __name__ == "__main__":
             from magent.builtin.tf_model import DeepQNetwork
         else:
             from magent.builtin.mx_model import DeepQNetwork
-        model1 = DeepQNetwork(env, deer_handle, "deer", num_gpu=args.num_gpu, infer_batch_size=50000)
-        model2 = DeepQNetwork(env, tiger_handle, "tiger", num_gpu=args.num_gpu, infer_batch_size=50000)
+        model1 = DeepQNetwork(env, deer_handle, "deer", num_gpu=args.num_gpu, infer_batch_size=100000)
+        model2 = DeepQNetwork(env, tiger_handle, "tiger", num_gpu=args.num_gpu, infer_batch_size=100000)
 
     total_reward = 0
 

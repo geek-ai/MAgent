@@ -34,7 +34,6 @@ def play_a_round(env, map_size, handles, models, print_every, train=True, render
     start_time = time.time()
     while not done:
         # take actions for every model
-        tic = time.time()
         for i in range(n):
             obs[i] = env.get_observation(handles[i])
             ids[i] = env.get_agent_id(handles[i])
@@ -43,7 +42,6 @@ def play_a_round(env, map_size, handles, models, print_every, train=True, render
         for i in range(n):
             acts[i] = models[i].fetch_action()  # fetch actions (blocking)
             env.set_action(handles[i], acts[i])
-        print("infer", time.time() -tic)
 
         # simulate one step
         done = env.step()

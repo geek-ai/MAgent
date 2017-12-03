@@ -7,7 +7,7 @@ import logging as log
 import time
 
 import magent
-from magent.builtin.tf_model import DeepQNetwork as RLModel
+from magent.builtin.mx_model import DeepQNetwork as RLModel
 
 
 def load_config(size):

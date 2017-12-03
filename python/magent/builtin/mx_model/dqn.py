@@ -236,8 +236,8 @@ class DeepQNetwork(MXBaseModel):
         n = len(rewards)
 
         data_batch = mx.io.DataBatch(data=[mx.nd.array(next_view), mx.nd.array(next_feature)])
+        self._reset_bind_size(n)
         if self.use_double:
-            self._reset_bind_size(n)
             self.target_model.forward(data_batch, is_train=False)
             self.model.forward(data_batch, is_train=False)
             t_qvalues = self.target_model.get_outputs()[0].asnumpy()
@@ -245,7 +245,7 @@ class DeepQNetwork(MXBaseModel):
             next_value = t_qvalues[np.arange(n), np.argmax(qvalues, axis=1)]
         else:
             self.target_model.forward(data_batch, is_train=False)
-            t_qvalues = self.target_model.get_outputs()[0]
+            t_qvalues = self.target_model.get_outputs()[0].asnumpy()
             next_value = np.max(t_qvalues, axis=1)
 
         target = np.where(terminal, rewards, rewards + self.gamma * next_value)

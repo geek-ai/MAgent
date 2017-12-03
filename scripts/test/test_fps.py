@@ -12,10 +12,10 @@ if len(sys.argv) < 2:
 parser = argparse.ArgumentParser()
 parser.add_argument("--max_gpu", type=int, default=0)
 parser.add_argument("--frame", type=str, default='tf')
-parser.add_argument("--name", type=str, default="")
+parser.add_argument("--name", type=str, default="fps")
 args = parser.parse_args()
 
-tmp_name = 'tmp-' + args.tmp_name
+tmp_name = 'tmp-' + args.name
 max_gpu = args.max_gpu
 framework = args.frame
 

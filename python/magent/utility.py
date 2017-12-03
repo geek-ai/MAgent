@@ -43,19 +43,27 @@ class EpisodesBuffer:
         """record transitions (s, a, r, terminal) in a step"""
         buffer = self.buffer
         index = np.random.permutation(len(ids))
-        for i in range(len(ids)):
-            i = index[i]
-            entry = buffer.get(ids[i])
-            if entry is None:
-                if self.is_full:
-                    continue
-                else:
-                    entry = EpisodesBufferEntry()
-                    buffer[ids[i]] = entry
-                    if len(buffer) >= self.capacity:
-                        self.is_full = True
 
-            entry.append(obs[0][i], obs[1][i], acts[i], rewards[i], alives[i])
+        if self.is_full:  # extract loop invariant in else part
+            for i in range(len(ids)):
+                entry = buffer.get(ids[i])
+                if entry is None:
+                    continue
+                entry.append(obs[0][i], obs[1][i], acts[i], rewards[i], alives[i])
+        else:
+            for i in range(len(ids)):
+                i = index[i]
+                entry = buffer.get(ids[i])
+                if entry is None:
+                    if self.is_full:
+                        continue
+                    else:
+                        entry = EpisodesBufferEntry()
+                        buffer[ids[i]] = entry
+                        if len(buffer) >= self.capacity:
+                            self.is_full = True
+
+                entry.append(obs[0][i], obs[1][i], acts[i], rewards[i], alives[i])
 
     def reset(self):
         """ clear replay buffer """

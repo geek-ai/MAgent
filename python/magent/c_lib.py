@@ -38,5 +38,5 @@ def as_bool_c_array(buf):
 
 
 if 'OMP_NUM_THREADS' not in os.environ:
-    os.environ['OMP_NUM_THREADS'] = str(multiprocessing.cpu_count() / 2)
+    os.environ['OMP_NUM_THREADS'] = str(multiprocessing.cpu_count() // 2)
 _LIB = _load_lib()
