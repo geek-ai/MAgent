@@ -19,8 +19,10 @@ predator = register_agent_type(
 
 ## Observation
 There are two parts in observation, spacial local view and non-spacial feature (see figure below).
-Spatial view consists of several channels. They will be masked by a circle or a sector.
-Non-spatial feature includes ID embedding, last action, last reward and normalized position.
+- Spatial view consists of several rectangular channels. These channels will be masked by a circle or a sector. (see view_range above).
+If the radius of a circle is 5, then the size of one channel is 11 x 11, where 11 = 5x2 + 1
+
+- Non-spatial feature includes ID embedding, last action, last reward and normalized position.
 ID embedding is the binary representation of agent's unique ID.
 
 <img src="../data/figure/observation_space.png" width="350">
@@ -28,6 +30,9 @@ ID embedding is the binary representation of agent's unique ID.
 ## Action
 Actions are discrete actions. They can be move, attack and turn.
 In the figure below, move range and attack range are also circular range (chunked to fit grids).
+The center point is the body point of the agent. Each point in the figure is a valid action.
+So if agent is configured as follow, it has 13 + 8 + 2 = 23 valid actions.
+
 
 <img src="../data/figure/action_space.png" width="300">
 
@@ -46,6 +51,7 @@ python examples/api_demo.py
 In this environment, predators are pursuing preys. Predators can get rewards by attacking preys.
 The predators and preys are trained by Deep Q-Network.
 After training, predators learn to lock preys by cooperating with each other.  
+See the source file [api_demo.py](../examples/api_demo.py) to know the basic api and workload of MAgent.
 See also [train_pursuit.py](../examples/train_pursuit.py) to know how the above agents are trained.
 
 ## Watch video
