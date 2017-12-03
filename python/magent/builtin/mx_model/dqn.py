@@ -86,10 +86,8 @@ class DeepQNetwork(MXBaseModel):
         self.qvalues = self._create_network(self.input_view, self.input_feature)
         self.gamma = reward_decay
         self.action_onehot = mx.sym.one_hot(self.action, depth=self.num_actions)
-        self.loss = mx.sym.sum(
-            mx.sym.square(
-                self.target - mx.sym.sum(self.qvalues * self.action_onehot, axis=1)
-            )) / mx.sym.sum(self.mask)
+        td_error = mx.sym.square(self.target - mx.sym.sum(self.qvalues * self.action_onehot, axis=1))
+        self.loss = mx.sym.sum(td_error * self.mask) / mx.sym.sum(self.mask)
         self.loss = mx.sym.MakeLoss(data=self.loss)
 
         self.out_qvalues = mx.sym.BlockGrad(self.qvalues)
@@ -334,8 +332,8 @@ class DeepQNetwork(MXBaseModel):
                                            mx.nd.array(batch_mask)])
             self.model.forward(batch, is_train=True)
             self.model.backward()
-            loss = np.mean(self.model.get_outputs()[1].asnumpy())
             self.model.update()
+            loss = np.mean(self.model.get_outputs()[1].asnumpy())
             total_loss += loss
 
             if ct % self.target_update == 0:
