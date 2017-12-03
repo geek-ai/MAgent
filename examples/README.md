@@ -6,7 +6,9 @@
 - train_battle.py:  battle between two armies (two networks)
 - train_single.py:  battle between two armies (single network)
 - train_against.py: battle against a fix model
+
+- show_arragen.py:  let agents to arrange themselves into specific characters
 - train_arrange.py: arrange agents into some characters
 
-- show_battle_game.py  a game based on batle agents
+- show_battle_game.py  a game based on battle agents
 - train_battle_game.py the training script for battle game

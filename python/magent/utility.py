@@ -221,7 +221,10 @@ def download_file(filename, url):
     ret = os.system("wget -O %s '%s'" % (filename, url))
 
     if ret != 0:
-        print("wget fails. Retry with python function. It may takes several miniuts...")
+        print("=======================================================================")
+        print("wget fails. Retry with python function. It may takes several minutes...")
+        print("It may be slow, you'd better install wget by 'brew install wget' and retry.")
+
         raw = urllib2.urlopen(url)
         with open(filename, 'wb') as fout:
             fout.write(raw.read())

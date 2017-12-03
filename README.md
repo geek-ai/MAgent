@@ -1,5 +1,4 @@
-MAgent
-==============================================
+<h1><img src="data/figure/logo.png" width="200"></h1>
 
 ![Build Status](http://112.74.109.55:8080/buildStatus/icon?job=magent)
 ![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)
@@ -7,7 +6,7 @@ MAgent
 MAgent is a research platform for many-agent reinforcement learning.
 Unlike previous research platforms that focus on reinforcement learning research with a single agent or only few agents, 
 MAgent aims at supporting reinforcement learning research that scales up from hundreds to millions of agents.
-[see video](https://www.youtube.com/watch?v=HCSm0kVolqI)
+[watch demo video](https://www.youtube.com/watch?v=HCSm0kVolqI)
 
 ## Requirement
 MAgent supports Linux and OS X running Python 2.7 or python 3.
@@ -50,9 +49,9 @@ If out-of-memory errors occur, you can tune infer_batch_size smaller in models.
 
 **Note** : You should run following examples in the root directory of this repo. Do not cd to `examples/`.
 
-#### train
+### Train
 Three examples shown in the above video.
-Video files will be saved every 10 rounds. You can use render to see them.
+Video files will be saved every 10 rounds. You can use render to watch them.
 
 * **pursuit**
 
@@ -71,7 +70,7 @@ Video files will be saved every 10 rounds. You can use render to see them.
 	```
 	python examples/train_battle.py --train
 	```
-### play
+### Play
 An interactive game to play with battle agents. You will act as a general and dispatch your soldiers.
 
 * **battle game**
