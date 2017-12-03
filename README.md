@@ -79,4 +79,6 @@ An interactive game to play with battle agents. You will act as a general and di
     ```
 
 ## Baseline Algorithms
-The baseline algorithms are implemented both in Tensorflow and MXNet.
+The baseline algorithms parameter-sharing DQN, DRQN, a2c are implemented both in Tensorflow and MXNet.
+DQN performs best in our large number sharing and gridworld settings.
+ 
