@@ -85,7 +85,7 @@ class NDArrayPackage:
 
         def send_thread():
             for x in self.data:
-                if np.prod(x.shape)  > self.max_len:  #
+                if np.prod(x.shape)  > self.max_len:
                     seg = int(self.max_len // np.prod(x.shape[1:]))
                     for pt in range(0, len(x), seg):
                         conn.send_bytes(x[pt:pt+seg])

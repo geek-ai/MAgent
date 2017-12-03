@@ -146,8 +146,10 @@ if __name__ == "__main__":
     parser.add_argument("--eval", action="store_true")
     parser.add_argument("--opponent", type=int, default=0)
     parser.add_argument('--alg', default='dqn', choices=['dqn', 'drqn', 'a2c'])
-
     args = parser.parse_args()
+
+    # download opponent model
+    magent.utility.check_model('against')
 
     # set logger
     magent.utility.init_logger(args.name)
@@ -180,15 +182,15 @@ if __name__ == "__main__":
     # load opponent
     if args.opponent >= 0:
         from magent.builtin.tf_model import DeepQNetwork
-        models.append(magent.ProcessingModel(env, handles[1], names[1], 0, 0, DeepQNetwork))
+        models.append(magent.ProcessingModel(env, handles[1], names[1], 20000, 0, DeepQNetwork))
         models[0].load("data/battle_model", args.opponent)
     else:
-        models.append(magent.ProcessingModel(env, handles[1], names[1], 0, 0, RandomActor))
+        models.append(magent.ProcessingModel(env, handles[1], names[1], 20000, 0, RandomActor))
 
     # load our model
     if args.alg == 'dqn':
         from magent.builtin.tf_model import DeepQNetwork
-        models.append(magent.ProcessingModel(env, handles[0], names[0], 1, 1000, DeepQNetwork,
+        models.append(magent.ProcessingModel(env, handles[0], names[0], 20001, 1000, DeepQNetwork,
                                    batch_size=batch_size,
                                    learning_rate=3e-4,
                                    memory_size=2 ** 20, train_freq=train_freq, eval_obs=eval_obs[0]))
@@ -196,7 +198,7 @@ if __name__ == "__main__":
         step_batch_size = None
     elif args.alg == 'drqn':
         from magent.builtin.tf_model import DeepRecurrentQNetwork
-        models.append(magent.ProcessingModel(env, handles[0], names[0], 1000, DeepRecurrentQNetwork,
+        models.append(magent.ProcessingModel(env, handles[0], names[0], 20001, 1000, DeepRecurrentQNetwork,
                                    batch_size=batch_size/unroll_step, unroll_step=unroll_step,
                                    learning_rate=3e-4,
                                    memory_size=4 * 625, train_freq=train_freq, eval_obs=eval_obs[0]))
@@ -204,7 +206,7 @@ if __name__ == "__main__":
     elif args.alg == 'a2c':
         from magent.builtin.mx_model import AdvantageActorCritic
         step_batch_size = 10 * args.map_size * args.map_size * 0.04
-        models.append(magent.ProcessingModel(env, handles[0], names[0], 1000, AdvantageActorCritic,
+        models.append(magent.ProcessingModel(env, handles[0], names[0], 20001, 1000, AdvantageActorCritic,
                                              learning_rate=1e-3))
 
     # load if

@@ -16,7 +16,5 @@ if __name__ == "__main__":
         print("Usage: python show_arrange.py messages...")
         exit()
 
-    if not os.path.exists("data/arrange_model/arrange/tfdqn_10.index"):
-        magent.utility.download_model("https://od.lk/d/NDFfNjAzNTA3OF8/arrange_game.tar.gz")
-
+    magent.utility.check_model('arrange')
     PyGameRenderer().start(Server(messages=sys.argv[1:]), grid_size=3.5)

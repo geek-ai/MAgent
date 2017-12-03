@@ -257,7 +257,7 @@ if __name__ == "__main__":
     for i in range(len(names)):
         model_args = {'eval_obs': eval_obs[i]}
         model_args.update(base_args)
-        models.append(magent.ProcessingModel(env, handles[i], names[i], 1000, RLModel, **model_args))
+        models.append(magent.ProcessingModel(env, handles[i], names[i], 20000+i, 1000, RLModel, **model_args))
 
     # load if
     savedir = 'save_model'

@@ -214,6 +214,7 @@ def has_gpu():
 
 
 def download_file(filename, url):
+    """download url to filename"""
     import urllib2
     print("Download %s from %s..." % (filename, url))
 
@@ -229,6 +230,7 @@ def download_file(filename, url):
 
 
 def download_model(url):
+    """download model from url"""
     name = url.split('/')[-1]
     name = os.path.join('data', name)
     download_file(name, url)
@@ -237,6 +239,35 @@ def download_model(url):
         os.system(cmd)
     do_commond("tar xzf %s -C data" % name)
     do_commond("rm %s" % name)
+
+
+def check_model(name):
+    """check whether a model is downloaded"""
+    infos = {
+        'against':
+            (('data/battle_model/battle/tfdqn_0.index',),
+             'https://od.lk/d/NDFfNjE2MjkxOV8/against-0.tar.gz'),
+
+        'battle-game':
+            (("data/battle_model/trusty-battle-game-l/tfdqn_0.index",
+             "data/battle_model/trusty-battle-game-r/tfdqn_0.index"),
+             "https://od.lk/d/NDFfNjA2MTU1N18/battle_model.tar.gz"),
+
+        'arrange':
+            (('data/arrange_model/arrange/tfdqn_10.index',),
+             'https://od.lk/d/NDFfNjAzNTA3OF8/arrange_game.tar.gz'),
+    }
+
+    if name not in infos:
+        raise RuntimeError("Unknown model name")
+
+    info = infos[name]
+    missing = False
+    for check in info[0]:
+        if not os.path.exists(check):
+            missing = True
+    if missing:
+        download_model(info[1])
 
 
 class FontProvider:
