@@ -1,7 +1,10 @@
+
 """ base models class"""
 
 import multiprocessing
+import multiprocessing.connection
 
+import numpy as np
 
 class BaseModel:
     def __init__(self, env, handle, *args, **kwargs):
@@ -59,12 +62,33 @@ class BaseModel:
         pass
 
 
+class NDArrayPackage:
+    def __init__(self, *args):
+        if isinstance(args[0], np.ndarray):
+            self.data = args
+            self.info = [(x.shape, x.dtype) for x in args]
+        else:
+            self.data = None
+            self.info = args[0]
+
+    def send_to(self, conn):
+        assert self.data is not None
+        for x in self.data:
+            conn.send_bytes(x)
+
+    def recv_from(self, conn):
+        bufs = [np.empty(shape=x[0], dtype=x[1]) for x in self.info]
+        for buf in bufs:
+            conn.recv_bytes_into(buf)
+        return bufs
+
+
 class ProcessingModel(BaseModel):
     """
     start a sub-processing to host a model,
     use pipe for communication
     """
-    def __init__(self, env, handle, name, sample_buffer_capacity=1000,
+    def __init__(self, env, handle, name, port, sample_buffer_capacity=1000,
                  RLModel=None, **kwargs):
         """
         Parameters
@@ -87,16 +111,15 @@ class ProcessingModel(BaseModel):
         kwargs['env'] = env
         kwargs['handle'] = handle
         kwargs['name'] = name
-        pipe = multiprocessing.Pipe()
+        addr = 'localhost' + str(port)  # named pipe
         proc = multiprocessing.Process(
             target=model_client,
-            args=(pipe[1], sample_buffer_capacity, RLModel, kwargs),
+            args=(addr, sample_buffer_capacity, RLModel, kwargs),
         )
 
-        conn = pipe[0]
         proc.start()
-
-        self.conn = conn
+        listener = multiprocessing.connection.Listener(addr)
+        self.conn = listener.accept()
 
     def sample_step(self, rewards, alives, block=True):
         """record a step (should be followed by check_done)
@@ -108,7 +131,9 @@ class ProcessingModel(BaseModel):
             if it is False, the caller must call check_done() afterward
                             to check/consume the return message
         """
-        self.conn.send(["sample", rewards, alives])
+        package = NDArrayPackage(rewards, alives)
+        self.conn.send(["sample", package.info])
+        package.send_to(self.conn)
 
         if block:
             self.check_done()
@@ -133,7 +158,11 @@ class ProcessingModel(BaseModel):
             see above
         """
 
-        self.conn.send(["act", raw_obs, ids, policy, eps])
+        package = NDArrayPackage(raw_obs[0], raw_obs[1], ids)
+        self.conn.send(["act",
+                        policy, eps, package.info])
+        package.send_to(self.conn)
+
         if block:
             return self.conn.recv()
         else:
@@ -146,7 +175,8 @@ class ProcessingModel(BaseModel):
         -------
         actions: numpy array (int32)
         """
-        return self.conn.recv()
+        info = self.conn.recv()
+        return NDArrayPackage(info).recv_from(self.conn)[0]
 
     def train(self, print_every=5000, block=True):
         """ train new data samples according to the model setting
@@ -214,12 +244,12 @@ class ProcessingModel(BaseModel):
         self.conn.send(["quit"])
 
 
-def model_client(conn, sample_buffer_capacity, RLModel, model_args):
+def model_client(addr, sample_buffer_capacity, RLModel, model_args):
     """target function for sub-processing to host a model
 
     Parameters
     ----------
-    conn: connection object
+    addr: socket address
     sample_buffer_capacity: int
         the maximum number of samples (s,r,a,s') to collect in a game round
     RLModel: BaseModel
@@ -232,23 +262,30 @@ def model_client(conn, sample_buffer_capacity, RLModel, model_args):
     model = RLModel(**model_args)
     sample_buffer = magent.utility.EpisodesBuffer(capacity=sample_buffer_capacity)
 
+    conn = multiprocessing.connection.Client(addr)
+
     while True:
         cmd = conn.recv()
         if cmd[0] == 'act':
-            obs = cmd[1]
-            ids = cmd[2]
-            policy = cmd[3]
-            eps = cmd[4]
+            policy = cmd[1]
+            eps = cmd[2]
+            array_info = cmd[3]
+
+            view, feature, ids = NDArrayPackage(array_info).recv_from(conn)
+            obs = (view, feature)
+
             acts = model.infer_action(obs, ids, policy=policy, eps=eps)
-            conn.send(acts)
+            package = NDArrayPackage(acts)
+            conn.send(package.info)
+            package.send_to(conn)
         elif cmd[0] == 'train':
             print_every = cmd[1]
             total_loss, value = model.train(sample_buffer, print_every=print_every)
             sample_buffer = magent.utility.EpisodesBuffer(sample_buffer_capacity)
             conn.send((total_loss, value))
         elif cmd[0] == 'sample':
-            rewards = cmd[1]
-            alives = cmd[2]
+            array_info = cmd[1]
+            rewards, alives = NDArrayPackage(array_info).recv_from(conn)
             sample_buffer.record_step(ids, obs, acts, rewards, alives)
             conn.send("done")
         elif cmd[0] == 'save':
@@ -267,4 +304,3 @@ def model_client(conn, sample_buffer_capacity, RLModel, model_args):
         else:
             print("Error: Unknown command %s" % cmd[0])
             break
-

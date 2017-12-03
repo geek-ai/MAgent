@@ -175,7 +175,7 @@ class DeepQNetwork(MXBaseModel):
             advantage = mx.sym.FullyConnected(data=dense, num_hidden=self.num_actions)
 
             mean = mx.sym.mean(advantage, axis=1, keepdims=True)
-            advantage = mx.sym.broadcast_add(advantage, mean)
+            advantage = mx.sym.broadcast_sub(advantage, mean)
             qvalues = mx.sym.broadcast_add(advantage, value)
         else:
             qvalues = mx.sym.FullyConnected(data=dense, num_hidden=self.num_actions)

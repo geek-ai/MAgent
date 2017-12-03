@@ -180,15 +180,15 @@ if __name__ == "__main__":
     # load opponent
     if args.opponent >= 0:
         from magent.builtin.tf_model import DeepQNetwork
-        models.append(magent.ProcessingModel(env, handles[1], names[1], 0, DeepQNetwork))
+        models.append(magent.ProcessingModel(env, handles[1], names[1], 0, 0, DeepQNetwork))
         models[0].load("data/battle_model", args.opponent)
     else:
-        models.append(magent.ProcessingModel(env, handles[1], names[1], 0, RandomActor))
+        models.append(magent.ProcessingModel(env, handles[1], names[1], 0, 0, RandomActor))
 
     # load our model
     if args.alg == 'dqn':
         from magent.builtin.tf_model import DeepQNetwork
-        models.append(magent.ProcessingModel(env, handles[0], names[0], 1000, DeepQNetwork,
+        models.append(magent.ProcessingModel(env, handles[0], names[0], 1, 1000, DeepQNetwork,
                                    batch_size=batch_size,
                                    learning_rate=3e-4,
                                    memory_size=2 ** 20, train_freq=train_freq, eval_obs=eval_obs[0]))
