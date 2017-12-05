@@ -41,6 +41,34 @@ Reward can be defined by constant attributes of agent type or by event trigger.
 See [python/magent/builtin/config](../python/magent/builtin/config/) for more examples.
 Of course, you can also write your own reward rules in the control logic in python code.
 
+## Control & Model Parallelism
+In Magent, agents are controled by groups. You should use group handle to manipulate agents.
+A typical main loop of a game is listed as follows
+```python
+handles = env.get_handles()
+while not done:
+    # take actions for every model
+    for i in range(n):
+        obs[i] = env.get_observation(handles[i])
+        ids[i] = env.get_agent_id(handles[i])
+        # let models infer action in parallel (non-blocking)
+        models[i].infer_action(obs[i], ids[i], 'e_greedy', eps, block=False)
+
+    for i in range(n):
+        acts[i] = models[i].fetch_action()  # fetch actions (blocking)
+        env.set_action(handles[i], acts[i])
+    
+    done = env.step()
+```
+Also, you can train different groups in parallel. This means you can even deploy your models in different machines. (only several lines of modification in python, use socket instead of pipe).
+```python
+# train models in parallel
+for i in range(n):
+    models[i].train(print_every=1000, block=False)
+for i in range(n):
+    total_loss[i], value[i] = models[i].fetch_train()
+```
+
 ## Run the first demo
 Run the following command in the root directory, do not cd to `examples/`
 ```bash
