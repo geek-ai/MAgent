@@ -9,7 +9,11 @@ MAgent aims at supporting reinforcement learning research that scales up from hu
 
 - AAAI 2018 demo paper: [MAgent: A Many-Agent Reinforcement Learning Platform for Artificial Collective Intelligence](https://arxiv.org/abs/1712.00600)
 - Watch [our demo video](https://www.youtube.com/watch?v=HCSm0kVolqI) for some interesting show cases.
-- Here are some immediate demos for the predator prey case.
+- Here is a immediate demo for the predator prey case.
+
+![](https://github.com/geek-ai/MAgent/blob/master/data/figure/battle1crop.gif)
+![](https://github.com/geek-ai/MAgent/blob/master/data/figure/battle2crop.gif)
+
 
 ## Requirement
 MAgent supports Linux and OS X running Python 2.7 or python 3.
