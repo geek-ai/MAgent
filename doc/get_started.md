@@ -6,7 +6,7 @@ The basic environment is a large gridworld. Agents and walls can be added in the
 
 ## Agents
 Agents are controlled by groups. Agents in a group share the same general attributes and control method.
-The attributes of an agent can be width, height, speed, hp, etc. An AgentType is registered as follows.
+The attributes of an agent can be width, height, speed, hp, etc. An AgentType can be registered as follows.
 ```python
 predator = register_agent_type(
     "predator",
@@ -19,7 +19,7 @@ predator = register_agent_type(
 
 ## Observation
 There are two parts in observation, spacial local view and non-spacial feature (see figure below).
-- Spatial view consists of several rectangular channels. These channels will be masked by a circle or a sector. (see view_range above).
+- Spatial view consists of several rectangular channels. These channels will be masked by a circle or a sector as described in the agent type registration. (see view_range above).
 If the radius of a circle is 5, then the size of one channel is 11 x 11, where 11 = 5x2 + 1
 
 - Non-spatial feature includes ID embedding, last action, last reward and normalized position.
@@ -38,9 +38,6 @@ So if agent is configured as follow, it has 13 + 8 + 2 = 23 valid actions.
 
 ## Reward
 Reward can be defined by constant attributes of agent type or by event trigger.
-See [python/magent/builtin/config](../python/magent/builtin/config/) for more examples.
-Of course, you can also write your own reward rules in the control logic in python code.
-
 Here is an example of the event tigger fashion. Boolean expression is supported. Two tigers can get reward when attack a deer simultaneously.
 ```python
 a = gw.AgentSymbol(tiger_group, index='any')
@@ -52,6 +49,8 @@ e1 = gw.Event(a, 'attack', c)
 e2 = gw.Event(b, 'attack', c)
 cfg.add_reward_rule(e1 & e2, receiver=[a, b], value=[1, 1])
 ```
+See [python/magent/builtin/config](../python/magent/builtin/config/) for more examples.
+Of course, you can also write your own reward rules in the control logic in python code.
 
 ## Game loop & Model parallelism
 In Magent, agents are controled by groups. You should use group handle to manipulate agents.
