@@ -6,7 +6,8 @@
 MAgent is a research platform for many-agent reinforcement learning.
 Unlike previous research platforms that focus on reinforcement learning research with a single agent or only few agents, 
 MAgent aims at supporting reinforcement learning research that scales up from hundreds to millions of agents.
-Watch [our demo video](https://www.youtube.com/watch?v=HCSm0kVolqI) for some interesting show cases.
+- AAAI 2018 demo paper: [MAgent: A Many-Agent Reinforcement Learning Platform for Artificial Collective Intelligence](https://arxiv.org/abs/1712.00600)
+- Watch [our demo video](https://www.youtube.com/watch?v=HCSm0kVolqI) for some interesting show cases.
 
 ## Requirement
 MAgent supports Linux and OS X running Python 2.7 or python 3.
