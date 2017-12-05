@@ -33,21 +33,20 @@ In the figure below, move range and attack range are also circular range (chunke
 The center point is the body point of the agent. Each point in the figure is a valid action.
 So if agent is configured as follow, it has 13 + 8 + 2 = 23 valid actions.
 
-
 <img src="../data/figure/action_space.png" width="300">
 
 ## Reward
 Reward can be defined by constant attributes of agent type or by event trigger.
 Here is an example of the event tigger fashion. Boolean expression is supported. Two tigers can get reward when attack a deer simultaneously.
 ```python
-a = gw.AgentSymbol(tiger_group, index='any')
-b = gw.AgentSymbol(tiger_group, index='any')
-c = gw.AgentSymbol(deer_group,  index='any')
+a = AgentSymbol(tiger_group, index='any')
+b = AgentSymbol(tiger_group, index='any')
+c = AgentSymbol(deer_group,  index='any')
 
 # tigers get reward when they attack a deer simultaneously
-e1 = gw.Event(a, 'attack', c)
-e2 = gw.Event(b, 'attack', c)
-cfg.add_reward_rule(e1 & e2, receiver=[a, b], value=[1, 1])
+e1 = Event(a, 'attack', c)
+e2 = Event(b, 'attack', c)
+config.add_reward_rule(e1 & e2, receiver=[a, b], value=[1, 1])
 ```
 See [python/magent/builtin/config](../python/magent/builtin/config/) for more examples.
 Of course, you can also write your own reward rules in the control logic in python code.
