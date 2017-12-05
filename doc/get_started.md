@@ -41,18 +41,30 @@ Reward can be defined by constant attributes of agent type or by event trigger.
 See [python/magent/builtin/config](../python/magent/builtin/config/) for more examples.
 Of course, you can also write your own reward rules in the control logic in python code.
 
-## Control & Model Parallelism
+Here is an example of the event tigger fashion. Boolean expression is supported. Two tigers can get reward when attack a deer simultaneously.
+```python
+a = gw.AgentSymbol(tiger_group, index='any')
+b = gw.AgentSymbol(tiger_group, index='any')
+c = gw.AgentSymbol(deer_group,  index='any')
+
+# tigers get reward when they attack a deer simultaneously
+e1 = gw.Event(a, 'attack', c)
+e2 = gw.Event(b, 'attack', c)
+cfg.add_reward_rule(e1 & e2, receiver=[a, b], value=[1, 1])
+```
+
+## Game loop & Model parallelism
 In Magent, agents are controled by groups. You should use group handle to manipulate agents.
-A typical main loop of a game is listed as follows
+A typical main loop of a game is listed as follows. It is worth noting that groups can infer action in parallel.
 ```python
 handles = env.get_handles()
 while not done:
-    # take actions for every model
+    # take action for every group
     for i in range(n):
         obs[i] = env.get_observation(handles[i])
         ids[i] = env.get_agent_id(handles[i])
         # let models infer action in parallel (non-blocking)
-        models[i].infer_action(obs[i], ids[i], 'e_greedy', eps, block=False)
+        models[i].infer_action(obs[i], ids[i], block=False)
 
     for i in range(n):
         acts[i] = models[i].fetch_action()  # fetch actions (blocking)
@@ -60,7 +72,7 @@ while not done:
     
     done = env.step()
 ```
-Also, you can train different groups in parallel. This means you can even deploy your models in different machines. (only several lines of modification in python, use socket instead of pipe).
+Also, you can train different groups in parallel.
 ```python
 # train models in parallel
 for i in range(n):
@@ -68,6 +80,7 @@ for i in range(n):
 for i in range(n):
     total_loss[i], value[i] = models[i].fetch_train()
 ```
+Futhermore, with several lines of modification in python (use socket instead of pipe), models can be deployed to different machines.
 
 ## Run the first demo
 Run the following command in the root directory, do not cd to `examples/`
