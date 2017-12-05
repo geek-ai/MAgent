@@ -11,8 +11,8 @@ MAgent aims at supporting reinforcement learning research that scales up from hu
 - Watch [our demo video](https://www.youtube.com/watch?v=HCSm0kVolqI) for some interesting show cases.
 - Here is a immediate demo for the predator prey case.
 
-![](https://github.com/geek-ai/MAgent/blob/master/data/figure/battle1crop.gif)
-![](https://github.com/geek-ai/MAgent/blob/master/data/figure/battle2crop.gif)
+![](https://github.com/geek-ai/MAgent/blob/master/data/figure/battle1crop.gif){:height="50%" width="50%"}
+![](https://github.com/geek-ai/MAgent/blob/master/data/figure/battle2crop.gif){:height="50%" width="50%"}
 
 
 ## Requirement
