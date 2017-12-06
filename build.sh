@@ -8,4 +8,11 @@ fi
 mkdir -p build
 cd build
 cmake ..
-make -j $(nproc)
+#make -j $(nproc)
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+    # Linux
+    make -j `nproc`
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    # Mac OSX
+    make -j `sysctl -n hw.ncpu`
+fi
