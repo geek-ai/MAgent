@@ -9,7 +9,7 @@ MAgent aims at supporting reinforcement learning research that scales up from hu
 
 - AAAI 2018 demo paper: [MAgent: A Many-Agent Reinforcement Learning Platform for Artificial Collective Intelligence](https://arxiv.org/abs/1712.00600)
 - Watch [our demo video](https://www.youtube.com/watch?v=HCSm0kVolqI) for some interesting show cases.
-- Here is a immediate demo for the predator prey case.
+- Here is a immediate demo for the battle case.
 
 <img src="data/figure/battle1crop.gif" width="200"><img src="data/figure/battle2crop.gif" width="200">
 
