@@ -98,7 +98,7 @@ See also [train_pursuit.py](../examples/train_pursuit.py) to know how the above 
 * Execute `./render`
 * Open index.html in browser. A modal will be opened once the frontend gets connected to the backend
 * Type `config.json` and `video_1.txt` in the two input boxes.
-* In the render, press arrow keys 'up', 'down', 'left', 'right' to move scope window. Press '<', '>' to zoom in or zoom out. For more help, press 'h'
+* In the render, press arrow keys 'up', 'down', 'left', 'right' to move scope window. Press '<', '>' to zoom in or zoom out. Press 's' to adjust speed and progress. Press 'e' to re-input configuration file and map file.
 
 ## Play general-soldier game
 In this section, Pygame are required.  
