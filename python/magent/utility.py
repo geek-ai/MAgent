@@ -215,19 +215,14 @@ def has_gpu():
 
 def download_file(filename, url):
     """download url to filename"""
-    import urllib2
     print("Download %s from %s..." % (filename, url))
 
     ret = os.system("wget -O %s '%s'" % (filename, url))
 
     if ret != 0:
-        print("=======================================================================")
-        print("wget fails. Retry with python function. It may takes several minutes...")
-        print("It may be slow, you'd better install wget by 'brew install wget' and retry.")
-
-        raw = urllib2.urlopen(url)
-        with open(filename, 'wb') as fout:
-            fout.write(raw.read())
+        print("ERROR: wget fails!")
+        print("If you are an OSX user, you can install wget by 'brew install wget' and retry.")
+        exit(-1)
     else:
         print("download done!")
 
@@ -249,16 +244,16 @@ def check_model(name):
     infos = {
         'against':
             (('data/battle_model/battle/tfdqn_0.index',),
-             'https://od.lk/d/NDFfNjE2MjkxOV8/against-0.tar.gz'),
+            'https://raw.githubusercontent.com/merrymercy/merrymercy.github.io/master/_data/magent/against-0.tar.gz'),
 
         'battle-game':
             (("data/battle_model/trusty-battle-game-l/tfdqn_0.index",
              "data/battle_model/trusty-battle-game-r/tfdqn_0.index"),
-             "https://od.lk/d/NDFfNjA2MTU1N18/battle_model.tar.gz"),
+             'https://raw.githubusercontent.com/merrymercy/merrymercy.github.io/master/_data/magent/battle_model.tar.gz'),
 
         'arrange':
             (('data/arrange_model/arrange/tfdqn_10.index',),
-             'https://od.lk/d/NDFfNjAzNTA3OF8/arrange_game.tar.gz'),
+             'https://raw.githubusercontent.com/merrymercy/merrymercy.github.io/master/_data/magent/arrange_game.tar.gz',)
     }
 
     if name not in infos:

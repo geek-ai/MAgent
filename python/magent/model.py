@@ -1,5 +1,4 @@
-
-""" base models class"""
+""" base model classes"""
 
 try:
     import thread
@@ -116,7 +115,7 @@ class NDArrayPackage:
 class ProcessingModel(BaseModel):
     """
     start a sub-processing to host a model,
-    use pipe for communication
+    use pipe or socket for communication
     """
     def __init__(self, env, handle, name, port, sample_buffer_capacity=1000,
                  RLModel=None, **kwargs):
@@ -144,6 +143,7 @@ class ProcessingModel(BaseModel):
         kwargs['handle'] = handle
         kwargs['name'] = name
         addr = 'magent-pipe-' + str(port)  # named pipe
+        # addr = ('localhost', port) # socket
         proc = multiprocessing.Process(
             target=model_client,
             args=(addr, sample_buffer_capacity, RLModel, kwargs),
