@@ -8,6 +8,7 @@ import time
 
 import magent
 from magent.builtin.mx_model import DeepQNetwork as RLModel
+# change this line to magent.builtin.tf_model to use tensorflow
 
 
 def load_config(size):

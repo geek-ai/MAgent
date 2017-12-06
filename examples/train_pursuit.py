@@ -95,9 +95,6 @@ def play_a_round(env, map_size, handles, models, print_every, train=True, render
         train_time = time.time() - start_time
         print("train_time %.2f" % train_time)
 
-    print(total_loss)
-    print(total_reward)
-    print(value)
     return magent.round(total_loss), magent.round(total_reward), magent.round(value)
 
 
