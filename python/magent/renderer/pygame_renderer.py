@@ -43,14 +43,15 @@ class PyGameRenderer(BaseRenderer):
         def draw_line(surface, color, a, b):
             pygame.draw.line(
                 surface, color,
-                map(int, (round(a[0]), round(a[1]))),
-                map(int, (round(b[0]), round(b[1])))
+                (int(round(a[0])), int(round(a[1]))),
+                (int(round(b[0])), int(round(b[1])))
             )
 
         def draw_rect(surface, color, a, w, h):
-            pygame.draw.rect(surface, color, pygame.Rect(
-                map(int, (round(a[0]), round(a[1]), round(w + a[0] - round(a[0])), round(h + a[1] - round(a[1]))))
-            ))
+            pygame.draw.rect(surface, color, pygame.Rect(*map(int, (
+                round(a[0]), round(a[1]),
+                round(w + a[0] - round(a[0])),
+                round(h + a[1] - round(a[1]))))))
             
         def draw_rect_matrix(matrix, color, a, w, h, resolution):
             x, y, w, h = map(int, (round(a[0]), round(a[1]), round(w + a[0] - round(a[0])), round(h + a[1] - round(a[1]))))
