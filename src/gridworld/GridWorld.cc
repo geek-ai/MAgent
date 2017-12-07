@@ -62,13 +62,26 @@ GridWorld::~GridWorld() {
         delete [] counter_x;
     if (counter_y != nullptr)
         delete [] counter_y;
+
+    if (large_map_mode) {
+        delete [] move_buffers;
+        delete [] turn_buffers;
+    }
 }
 
 void GridWorld::reset() {
     id_counter = 0;
 
-    if (width * height > 99 * 99)
+    if (width * height > 99 * 99) {
         large_map_mode = true;
+        if (width * height > 1000 * 1000) {
+            NUM_SEP_BUFFER = 16;
+        } else {
+            NUM_SEP_BUFFER = 8;
+        }
+        move_buffers = new std::vector<MoveAction>[NUM_SEP_BUFFER];
+        turn_buffers = new std::vector<TurnAction>[NUM_SEP_BUFFER];
+    }
 
     // reset map
     map.reset(width, height, food_mode);
@@ -390,7 +403,7 @@ void GridWorld::set_action(GroupHandle group, const int *actions) {
     std::vector<Agent*> &agents = groups[group].get_agents();
     const AgentType &type = groups[group].get_type();
     // action space layout : move turn attack ...
-    const int bandwidth = (width + NUM_MOVE_BUFFER - 1) / NUM_MOVE_BUFFER;
+    const int bandwidth = (width + NUM_SEP_BUFFER - 1) / NUM_SEP_BUFFER;
 
     size_t agent_size = agents.size();
 
@@ -403,7 +416,7 @@ void GridWorld::set_action(GroupHandle group, const int *actions) {
             if (act < type.turn_base) {          // move
                 int x = agent->get_pos().x;
                 int x_ = x % bandwidth;
-                if (x_ < 3 || x_ > bandwidth - 3) {
+                if (x_ < 4 || x_ > bandwidth - 4) {
                     move_buffer_bound.push_back(MoveAction{agent, act - type.move_base});
                 } else {
                     int to = agent->get_pos().x / bandwidth;
@@ -412,7 +425,7 @@ void GridWorld::set_action(GroupHandle group, const int *actions) {
             } else if (act < type.attack_base) { // turn
                 int x = agent->get_pos().x;
                 int x_ = x % bandwidth;
-                if (x_ < 3 || x_ > bandwidth - 3) {
+                if (x_ < 4 || x_ > bandwidth - 4) {
                     turn_buffer_bound.push_back(TurnAction{agent, act - type.move_base});
                 } else {
                     int to = agent->get_pos().x / bandwidth;
@@ -502,7 +515,8 @@ void GridWorld::step(int *done) {
         }
     }
 
-    // starve*LOG(TRACE) << "starve.  ";
+    // starve
+    LOG(TRACE) << "starve.  ";
     for (int i = 0; i < group_size; i++) {
         Group &group = groups[i];
         std::vector<Agent*> &agents = group.get_agents();
@@ -547,7 +561,7 @@ void GridWorld::step(int *done) {
         if (large_map_mode) {
             LOG(TRACE) << "turn parallel.  ";
             #pragma omp parallel for
-            for (int i = 0; i < NUM_TURN_BUFFER; i++) {        // turn in separate areas, do them in parallel
+            for (int i = 0; i < NUM_SEP_BUFFER; i++) {        // turn in separate areas, do them in parallel
                 do_turn_for_a_buffer(turn_buffers[i], map);
             }
         }
@@ -590,7 +604,7 @@ void GridWorld::step(int *done) {
     if (large_map_mode) {
         LOG(TRACE) << "move parallel.  ";
         #pragma omp parallel for
-        for (int i = 0; i < NUM_MOVE_BUFFER; i++) {    // move in separate areas, do them in parallel
+        for (int i = 0; i < NUM_SEP_BUFFER; i++) {    // move in separate areas, do them in parallel
             do_move_for_a_buffer(move_buffers[i], map);
         }
     }
