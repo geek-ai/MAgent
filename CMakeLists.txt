@@ -5,6 +5,8 @@ project(magent)
 IF (APPLE)
     set(CMAKE_CXX_COMPILER "/usr/local/opt/llvm/bin/clang++")
     link_directories("/usr/local/opt/llvm/lib")
+    include_directories( "/usr/local/include" )
+    link_directories("/usr/local/lib/")
 ENDIF()
 
 file(GLOB autopilot_sources src/*.cc src/gridworld/*.cc src/discrete_snake/*.cc src/utility/*.cc)
