@@ -703,6 +703,24 @@ class Config:
             name of the type (should be unique)
         attr: dict
             key value pair of the agent type
+            see notes below to know the available attributes
+
+        Notes
+        -----
+        height: int, height of agent body
+        width:  int, width of agent body
+        speed:  float, maximum speed, i.e. the radius of move circle of the agent
+        hp:     float, maximum health point of the agent
+        view_range: gw.CircleRange or gw.SectorRange
+
+        damage: float, attack damage
+        step_recover: float, step recover of health point (can be negative)
+        kill_supply: float, the hp gain when kill this type of agents
+
+        step_reward: float, reward get in every step
+        kill_reward: float, reward gain when kill this type of agent
+        dead_penalty: float, reward get when dead
+        attack_penalty: float, reward get when perform an attack (this is used to make agents do not attack blank grid)
         """
         if name in self.agent_type_dict:
             raise Exception("type name %s already exists" % name)

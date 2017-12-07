@@ -8,7 +8,7 @@ fi
 mkdir -p build
 cd build
 cmake ..
-#make -j $(nproc)
+
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
     # Linux
     make -j `nproc`

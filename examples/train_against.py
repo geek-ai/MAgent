@@ -228,7 +228,7 @@ if __name__ == "__main__":
         tic = time.time()
         start = 1 if args.opponent != -1 else 0.1
         train_eps = magent.utility.piecewise_decay(k, [0, 100, 250], [start, 0.1, 0.05]) if not args.greedy else 0
-        opponent_eps = train_eps if k < 0 else 0.05  # can use curriculum learning in first 100 steps
+        opponent_eps = train_eps if k < 100 else 0.05  # can use curriculum learning in first 100 steps
 
         loss, num, reward, value = play_a_round(env, args.map_size, handles, models,
                                                 eps=[opponent_eps, train_eps], step_batch_size=step_batch_size,
