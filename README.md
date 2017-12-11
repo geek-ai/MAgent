@@ -11,7 +11,8 @@ MAgent aims at supporting reinforcement learning research that scales up from hu
 - Watch [our demo video](https://www.youtube.com/watch?v=HCSm0kVolqI) for some interesting show cases.
 - Here are two immediate demo for the battle case.
 
-<img src="https://github.com/Kipsora/kipsora.github.io/blob/master/img/magent-graph-1.gif" width="200"><img src="https://github.com/Kipsora/kipsora.github.io/blob/master/img/magent-graph-2.gif" width="200">
+<img src="https://cdn.rawgit.com/ColCarroll/MAgent/master/doc/gif/magent-graph-1.gif" width="200">
+<img src="https://cdn.rawgit.com/ColCarroll/MAgent/master/doc/gif/magent-graph-2.gif" width="200">
 
 ## Requirement
 MAgent supports Linux and OS X running Python 2.7 or python 3.
