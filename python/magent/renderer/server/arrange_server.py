@@ -8,6 +8,33 @@ from magent.renderer.server import BaseServer
 from magent.utility import FontProvider
 
 
+def remove_wall(d, cur_pos, wall_set, unit):
+    if d == 0:
+        for i in range(0, unit):
+            for j in range(0, unit):
+                temp = (cur_pos[0] + i, cur_pos[1] + unit + j)
+                if temp in wall_set:
+                    wall_set.remove(temp)
+    elif d == 1:
+        for i in range(0, unit):
+            for j in range(0, unit):
+                temp = (cur_pos[0] - unit + i, cur_pos[1] + j)
+                if temp in wall_set:
+                    wall_set.remove(temp)
+    elif d == 2:
+        for i in range(0, unit):
+            for j in range(0, unit):
+                temp = (cur_pos[0] + i, cur_pos[1] - unit + j)
+                if temp in wall_set:
+                    wall_set.remove(temp)
+    elif d == 3:
+        for i in range(0, unit):
+            for j in range(0, unit):
+                temp = (cur_pos[0] + unit + i, cur_pos[1] + j)
+                if temp in wall_set:
+                    wall_set.remove(temp)
+
+
 def dfs(x, y, width, height, unit, wall_set):
     pos = set()
     trace = list()
@@ -25,30 +52,7 @@ def dfs(x, y, width, height, unit, wall_set):
             cur_pos = trace[-1]
             trace.pop()
             if random.choice(range(2)) == 0:
-                if d == 0:
-                    for i in range(0, unit):
-                        for j in range(0, unit):
-                            temp = (cur_pos[0] + i, cur_pos[1] + unit + j)
-                            if temp in wall_set:
-                                wall_set.remove(temp)
-                elif d == 1:
-                    for i in range(0, unit):
-                        for j in range(0, unit):
-                            temp = (cur_pos[0] - unit + i, cur_pos[1] + j)
-                            if temp in wall_set:
-                                wall_set.remove(temp)
-                elif d == 2:
-                    for i in range(0, unit):
-                        for j in range(0, unit):
-                            temp = (cur_pos[0] + i, cur_pos[1] - unit + j)
-                            if temp in wall_set:
-                                wall_set.remove(temp)
-                elif d == 3:
-                    for i in range(0, unit):
-                        for j in range(0, unit):
-                            temp = (cur_pos[0] + unit + i, cur_pos[1] + j)
-                            if temp in wall_set:
-                                wall_set.remove(temp)
+                remove_wall(d, cur_pos, wall_set, unit)
             flag = 0
         if len(trace) == 0:
             break
@@ -65,31 +69,7 @@ def dfs(x, y, width, height, unit, wall_set):
             d = (d + 1) % 4
             flag += 1
         else:
-            if d == 0:
-                for i in range(0, unit):
-                    for j in range(0, unit):
-                        temp = (cur_pos[0] + i, cur_pos[1] + unit + j)
-                        if temp in wall_set:
-                            wall_set.remove(temp)
-            elif d == 1:
-                for i in range(0, unit):
-                    for j in range(0, unit):
-                        temp = (cur_pos[0] - unit + i, cur_pos[1] + j)
-                        if temp in wall_set:
-                            wall_set.remove(temp)
-            elif d == 2:
-                for i in range(0, unit):
-                    for j in range(0, unit):
-                        temp = (cur_pos[0] + i, cur_pos[1] - unit + j)
-                        if temp in wall_set:
-                            wall_set.remove(temp)
-            elif d == 3:
-                for i in range(0, unit):
-                    for j in range(0, unit):
-                        temp = (cur_pos[0] + unit + i, cur_pos[1] + j)
-                        if temp in wall_set:
-                            wall_set.remove(temp)
-
+            remove_wall(d, cur_pos, wall_set, unit)
             trace.append(tuple(cur_pos))
             pos.add(tuple(cur_pos))
             d = random.choice(range(4))
@@ -159,39 +139,6 @@ def create_maze(pos, width, height, unit, font_area):
     temp.extend(open_the_door(pos[0], pos[1], font_area[0] + height * unit, font_area[1] + height * unit, unit))
     res = clean_pos_set_convert_to_list(pos_set, temp)
     return res
-    # return pos_set
-
-
-def draw_split_line(x, y, width, height, split=10):
-    pos_set = []
-    if height > width:
-        splits = set(np.random.choice(height // 2, split) * 2)
-        for r in range(height):
-            if r in splits or (r - 1 in splits):
-                continue
-            for c in range(width):
-                pos_set.append((x + c, y + r))
-    else:
-        splits = set(np.random.choice(width // 2, split) * 2)
-        for r in range(height):
-            for c in range(width):
-                if c in splits or (c - 1 in splits):
-                    continue
-                pos_set.append((x + c, y + r))
-
-    return pos_set
-
-
-def create_naive_maze(pos, width, height, unit, font_area):
-    pos_set = []
-    for i in range(height):
-        if i % 2 == 0:
-            pos_set.extend(draw_split_line(pos[0], pos[1] + i * unit, width * unit, unit))
-            pos_set.extend(draw_split_line(pos[0], pos[1] + font_area[1] + i * unit, width * unit, unit))
-            pos_set.extend(draw_split_line(pos[0] + i * unit, pos[1] + height * unit, unit, font_area[1] - height * unit))
-            pos_set.extend(draw_split_line(pos[0] + font_area[0] + i * unit, pos[1] + height * unit, unit, font_area[1] - height * unit))
-
-    return pos_set
 
 
 def load_config(map_size):
@@ -273,9 +220,9 @@ def generate_map(mode, env, map_size, goal_handle, handles, messages, font):
 
         env.add_agents(goal_handle, method="custom", pos=pos)
 
-    base_y = (map_size - len(messages) * font.height) / 2
+    base_y = (map_size - len(messages) * font.height) // 2
     for message in messages:
-        base_x = (map_size - len(message) * font.width) / 2
+        base_x = (map_size - len(message) * font.width) // 2
         scale = 1
         for x in message:
             data = font.get(x)
