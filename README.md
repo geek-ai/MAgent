@@ -21,7 +21,7 @@ You can write rule-based algorithms or use deep learning frameworks.
 ## Install on Linux
 
 ```bash
-git clone git@github.com:geek-ai/magent.git
+git@github.com:geek-ai/MAgent.git
 cd MAgent
 
 sudo apt-get install cmake libboost-system-dev libjsoncpp-dev libwebsocketpp-dev
@@ -32,7 +32,7 @@ export PYTHONPATH=$(pwd)/python:$PYTHONPATH
 
 ## Install on OSX
 ```bash
-git clone git@github.com:geek-ai/magent.git
+git@github.com:geek-ai/MAgent.git
 cd MAgent
 
 brew install cmake llvm boost
