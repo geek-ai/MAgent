@@ -41,23 +41,23 @@ const unsigned int &Frame::getAgentsNumber() const {
     return nAgents;
 }
 
-const unsigned int &Frame::getEventsNumber() const {
-    return nEvents;
+const unsigned int &Frame::getAttackEventsNumber() const {
+    return nAttackEvents;
 }
 
 const AgentData &Frame::getAgent(unsigned int id) const {
     return agents[id];
 }
 
-const EventData &Frame::getEvent(unsigned int id) const {
-    return events[id];
+const AttackEventData &Frame::getAttackEvent(unsigned int id) const {
+    return attackEvents[id];
 }
 
 void Frame::load(std::istream & handle) {
     if (!handle) {
         throw RenderException("invalid file handle");
     }
-    if (!(handle >> nAgents >> nEvents >> nBreads)) {
+    if (!(handle >> nAgents >> nAttackEvents >> nStrokeEvents >> nBreads)) {
         throw RenderException("cannot read nAgents and nEvents and nBreads");
     }
     if (agents != nullptr) {
@@ -65,9 +65,14 @@ void Frame::load(std::istream & handle) {
         agents = nullptr;
     }
 
-    if (events != nullptr) {
-        delete[](events);
-        events = nullptr;
+    if (attackEvents != nullptr) {
+        delete[](attackEvents);
+        attackEvents = nullptr;
+    }
+
+    if (strokeEvents != nullptr) {
+        delete[](strokeEvents);
+        strokeEvents = nullptr;
     }
 
     if (breads != nullptr) {
@@ -92,21 +97,38 @@ void Frame::load(std::istream & handle) {
         throw;
     }
 
-    events = new render::EventData[nEvents];
+    attackEvents = new render::AttackEventData[nAttackEvents];
     try{
-        for (unsigned int i = 0, j = 0; i < nEvents; i++) {
-            int id;
-            if (!(handle >> events[i].type >> id >> events[i].position.x >> events[i].position.y)) {
-                throw RenderException("cannot read the next event, map file may be broken");
+        for (unsigned int i = 0, j = 0; i < nAttackEvents; i++) {
+            int type, id;
+            if (!(handle >> type >> id >> attackEvents[i].position.x >> attackEvents[i].position.y)) {
+                throw RenderException("cannot read the next attack event, map file may be broken");
             }
             if (map.find(id) != map.end()) {
-                events[i].agent = &agents[map[id]];
+                attackEvents[i].agent = &agents[map[id]];
             }
         }
     } catch (const RenderException &e) {
-        delete[](events);
-        events = nullptr;
-        nEvents = 0;
+        delete[](attackEvents);
+        attackEvents = nullptr;
+        nAttackEvents = 0;
+        throw;
+    }
+
+    strokeEvents = new render::StrokeEventData[nStrokeEvents];
+    try{
+        for (unsigned int i = 0, j = 0; i < nStrokeEvents; i++) {
+            int type;
+            if (!(handle >> type >> strokeEvents[i].positionA.x >> strokeEvents[i].positionA.y
+                         >> strokeEvents[i].positionB.x >> strokeEvents[i].positionB.y
+                         >> strokeEvents[i].red >> strokeEvents[i].green >> strokeEvents[i].blue)) {
+                throw RenderException("cannot read the next stroke event, map file may be broken");
+            }
+        }
+    } catch (const RenderException &e) {
+        delete[](attackEvents);
+        attackEvents = nullptr;
+        nAttackEvents = 0;
         throw;
     }
 
@@ -131,18 +153,23 @@ Frame::~Frame() {
         agents = nullptr;
     }
 
-    if (events != nullptr) {
-        delete[](events);
-        events = nullptr;
+    if (attackEvents != nullptr) {
+        delete[](attackEvents);
+        attackEvents = nullptr;
     }
 
     if (breads != nullptr) {
         delete[](breads);
         breads = nullptr;
     }
+    if (strokeEvents != nullptr) {
+        delete[](strokeEvents);
+        strokeEvents = nullptr;
+    }
 }
 
-Frame::Frame() : nEvents(0), nAgents(0), nBreads(0), agents(nullptr), events(nullptr), breads(nullptr) {
+Frame::Frame() : nAttackEvents(0), nStrokeEvents(0), nAgents(0), nBreads(0),
+                 agents(nullptr), attackEvents(nullptr), strokeEvents(nullptr), breads(nullptr) {
 
 }
 
@@ -156,8 +183,17 @@ const BreadData &Frame::getBread(unsigned int id) const {
 
 void Frame::releaseMemory() {
     agents = nullptr;
-    events = nullptr;
+    attackEvents = nullptr;
+    strokeEvents = nullptr;
     breads = nullptr;
+}
+
+const unsigned int &Frame::getStrokeEventsNumber() const {
+    return nStrokeEvents;
+}
+
+const render::StrokeEventData &Frame::getStrokeEvent(unsigned int id) const {
+    return strokeEvents[id];
 }
 
 Buffer::~Buffer() {

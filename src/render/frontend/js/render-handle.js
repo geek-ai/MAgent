@@ -37,21 +37,21 @@ function _onresize() {
 }
 
 function _drawGrid() {
-    /*_gridCTX.clearRect(0, 0, _gridCTX.canvas.width, _gridCTX.canvas.height);
-    %_gridCTX.beginPath();
+    _gridCTX.clearRect(0, 0, _gridCTX.canvas.width, _gridCTX.canvas.height);
+    _gridCTX.beginPath();
     _gridCTX.strokeStyle = gridColor;
     var i;
-    var magentX = Math.floor(_offsetX) - _offsetX;
-    var magentY = Math.floor(_offsetY) - _offsetY;
+    var magentX = (Math.floor(_offsetX) - _offsetX) * gridSize;
+    var magentY = (Math.floor(_offsetY) - _offsetY) * gridSize;
     for (i = 0; i * gridSize < _gridCTX.canvas.height; i++) {
-        _gridCTX.moveTo(0, i * gridSize + magentY / gridSize);
+        _gridCTX.moveTo(0, i * gridSize + magentY);
         _gridCTX.lineTo(_gridCTX.canvas.width, i * gridSize + magentY / gridSize);
     }
     for (i = 0; i * gridSize < _gridCTX.canvas.width; i++) {
-        _gridCTX.moveTo(i * gridSize + magentX / gridSize, 0);
-        _gridCTX.lineTo(i * gridSize + magentX / gridSize, _gridCTX.canvas.height);
+        _gridCTX.moveTo(i * gridSize + magentX, 0);
+        _gridCTX.lineTo(i * gridSize + magentX, _gridCTX.canvas.height);
     }
-    _gridCTX.stroke();*/
+    _gridCTX.stroke();
 }
 
 function _drawStatusFigure() {
@@ -294,19 +294,20 @@ function run() {
                 case 'f':
                     _mapStatus = 'PLAY';
                     _mapLastData = _mapData;
-                    _mapData = [[], [], [], [], [], []];
+                    _mapData = [[], [], [], [], [], [], []];
 
                     data = data.split(';');
 
                     data[0] = data[0].split('|'); // Events
-                    for (var itEvents = 0, nEvents = data[0].length; itEvents < nEvents; itEvents++) {
-                        if (data[0][itEvents] !== '') {
-                            data[0][itEvents] = data[0][itEvents].split(' ');
+                    for (var itAttackEvents = 0, nAttackEvents = data[0].length;
+                         itAttackEvents < nAttackEvents;
+                         itAttackEvents++) {
+                        if (data[0][itAttackEvents] !== '') {
+                            data[0][itAttackEvents] = data[0][itAttackEvents].split(' ');
                             _mapData[0].push([
-                                parseInt(data[0][itEvents][0]),
-                                parseInt(data[0][itEvents][1]),
-                                parseInt(data[0][itEvents][2]),
-                                parseInt(data[0][itEvents][3])
+                                parseInt(data[0][itAttackEvents][0]),
+                                parseInt(data[0][itAttackEvents][1]),
+                                parseInt(data[0][itAttackEvents][2])
                             ]);
                         }
                     }
@@ -367,6 +368,24 @@ function run() {
                     }
 
                     _mapData[5] = data[5].split(' ');
+
+                    data[6] = data[6].split('|'); // Events
+                    for (var itStrokeEvents = 0, nStrokeEvents = data[6].length;
+                         itStrokeEvents < nStrokeEvents;
+                         itStrokeEvents++) {
+                        if (data[6][itStrokeEvents] !== '') {
+                            data[6][itStrokeEvents] = data[6][itStrokeEvents].split(' ');
+                            _mapData[6].push([
+                                parseInt(data[6][itStrokeEvents][0]),
+                                parseInt(data[6][itStrokeEvents][1]),
+                                parseInt(data[6][itStrokeEvents][2]),
+                                parseInt(data[6][itStrokeEvents][3]),
+                                parseInt(data[6][itStrokeEvents][4]),
+                                parseInt(data[6][itStrokeEvents][5]),
+                                parseInt(data[6][itStrokeEvents][6])
+                            ]);
+                        }
+                    }
                     break;
                 case 'e':
                     $.jGrowl(data, {position: 'bottom-right'});
@@ -564,26 +583,41 @@ function _drawEvent() {
         _eventCTX.beginPath();
         _eventCTX.fillStyle = _mapStyles['attack-style'];
         for (i = 0; i < _mapData[0].length; i++) {
-            if (_mapData[0][i][0] === 0) {
-                id = _mapData[0][i][1];
-                if (_mapData[1][id] === undefined) {
-                    continue;
-                }
-                style = _mapStyles['group'][_mapData[1][id][2]];
-                result = _getOriginGridCoordinate(
-                    _mapData[1][id],
-                    _mapLastData !== undefined ? _mapLastData[1][id] : undefined,
-                    style
-                );
-                _eventCTX.rect(
-                    _mapData[0][i][2] * gridSize + gridSize / 2 - _offsetX * gridSize - gridSize / 8,
-                    _mapData[0][i][3] * gridSize + gridSize / 2 - _offsetY * gridSize - gridSize / 8,
-                    gridSize / 4,
-                    gridSize / 4
-                );
+            id = _mapData[0][i][0];
+            if (_mapData[1][id] === undefined) {
+                continue;
             }
+            style = _mapStyles['group'][_mapData[1][id][2]];
+            result = _getOriginGridCoordinate(
+                _mapData[1][id],
+                _mapLastData !== undefined ? _mapLastData[1][id] : undefined,
+                style
+            );
+            _eventCTX.rect(
+                _mapData[0][i][1] * gridSize + gridSize / 2 - _offsetX * gridSize - gridSize / 8,
+                _mapData[0][i][2] * gridSize + gridSize / 2 - _offsetY * gridSize - gridSize / 8,
+                gridSize / 4,
+                gridSize / 4
+            );
         }
         _eventCTX.fill();
+        _eventCTX.beginPath();
+        for (i = 0; i < _mapData[6].length; i++) {
+            _eventCTX.strokeStyle = 'rgba('
+                + _mapData[6][i][4].toString() + ','
+                + _mapData[6][i][5].toString() + ','
+                + _mapData[6][i][6].toString() + ','
+                + '1)';
+            _eventCTX.moveTo(
+                _mapData[6][i][0] * gridSize - _offsetX * gridSize,
+                _mapData[6][i][1] * gridSize - _offsetY * gridSize
+            );
+            _eventCTX.lineTo(
+                _mapData[6][i][2] * gridSize - _offsetX * gridSize,
+                _mapData[6][i][3] * gridSize - _offsetY * gridSize
+            );
+        }
+        _eventCTX.stroke();
     }
 }
 

@@ -19,9 +19,8 @@ std::string Text::encode(const magent::render::AgentData &agent)const {
            + ' ' + std::to_string(agent.hp);
 }
 
-std::string Text::encode(const magent::render::EventData &event)const {
-    return std::to_string(event.type)
-           + ' ' + std::to_string(event.agent->id)
+std::string Text::encode(const magent::render::AttackEventData &event)const {
+    return std::to_string(event.agent->id)
            + ' ' + std::to_string(event.position.x)
            + ' ' + std::to_string(event.position.y);
 }
@@ -70,8 +69,8 @@ std::string Text::encode(const magent::render::Frame &frame,
                          const magent::render::Window &window)const {
     std::string result("f");
     std::unordered_map<int, bool> hasEvent;
-    for (unsigned int i = 0, size = frame.getEventsNumber(), first = 1; i < size; i++) {
-        const render::EventData &data = frame.getEvent(i);
+    for (unsigned int i = 0, size = frame.getAttackEventsNumber(), first = 1; i < size; i++) {
+        const render::AttackEventData &data = frame.getAttackEvent(i);
         const render::Style &style = config.getStyle(data.agent->groupID);
         unsigned int width = style.width;
         unsigned int height = style.height;
@@ -174,6 +173,16 @@ std::string Text::encode(const magent::render::Frame &frame,
         first = 0;
     }
 
+    result.append(";");
+    for (unsigned int i = 0, size = frame.getStrokeEventsNumber(), first = 1; i < size; i++) {
+        const render::StrokeEventData &data = frame.getStrokeEvent(i);
+        if (window.accept(data.positionA.x, data.positionA.y) or window.accept(data.positionB.x, data.positionB.y)) {
+            if (first == 0u) result.append("|");
+            result.append(encode(data));
+            first = 0;
+        }
+    }
+
     return result;
 }
 
@@ -181,6 +190,16 @@ std::string Text::encode(const magent::render::BreadData &bread) const {
     return std::to_string(bread.position.x)
            + ' ' + std::to_string(bread.position.y)
            + ' ' + std::to_string(bread.hp);
+}
+
+std::string Text::encode(const render::StrokeEventData &stroke) const {
+    return std::to_string(stroke.positionA.x)
+           + ' ' + std::to_string(stroke.positionA.y)
+           + ' ' + std::to_string(stroke.positionB.x)
+           + ' ' + std::to_string(stroke.positionB.y)
+           + ' ' + std::to_string(stroke.red)
+           + ' ' + std::to_string(stroke.green)
+           + ' ' + std::to_string(stroke.blue);
 }
 
 } // namespace render
