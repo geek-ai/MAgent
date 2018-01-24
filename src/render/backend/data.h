@@ -28,10 +28,19 @@ struct BreadData : public render::Unique {
     int hp;
 };
 
-struct EventData : public render::Unique {
-    int type;
+struct AttackEventData {
     const AgentData * agent;
     Coordinate position;
+};
+
+struct StrokeEventData {
+    Coordinate positionA, positionB;
+    unsigned int red, green, blue;
+};
+
+struct FillRectEventData {
+    Coordinate positionA, positionB;
+    unsigned int red, green, blue;
 };
 
 struct Window {
@@ -46,10 +55,12 @@ struct Window {
 
 class Frame : public render::Unique {
 private:
-    unsigned int nAgents, nEvents, nBreads;
+    unsigned int nAgents, nAttackEvents, nStrokeEvents, nFillRectEvents, nBreads;
     render::AgentData * agents;
-    render::EventData * events;
     render::BreadData * breads;
+    render::AttackEventData * attackEvents;
+    render::StrokeEventData * strokeEvents;
+    render::FillRectEventData * fillRectEvents;
 
 public:
     explicit Frame();
@@ -58,13 +69,21 @@ public:
 
     const unsigned int & getAgentsNumber() const;
 
-    const unsigned int & getEventsNumber() const;
+    const unsigned int & getAttackEventsNumber() const;
+
+    const unsigned int & getStrokeEventsNumber() const;
+
+    const unsigned int & getFillRectEventsNumber() const;
 
     const unsigned int & getBreadsNumber() const;
 
     const render::AgentData & getAgent(unsigned int id) const;
 
-    const render::EventData & getEvent(unsigned int id) const;
+    const render::AttackEventData & getAttackEvent(unsigned int id) const;
+
+    const render::StrokeEventData & getStrokeEvent(unsigned int id) const;
+
+    const render::FillRectEventData & getFillRectEvent(unsigned int id) const;
 
     const render::BreadData & getBread(unsigned int id) const;
 

@@ -13,9 +13,13 @@ class Text : public Base<std::string> {
 private:
     std::string encode(const render::AgentData & /*unused*/)const override;
 
-    std::string encode(const render::EventData & /*unused*/)const override;
+    std::string encode(const render::AttackEventData & /*unused*/)const override;
+
+    std::string encode(const render::StrokeEventData & /*unused*/)const override;
 
     std::string encode(const render::BreadData & /*unused*/)const override ;
+
+    std::string encode(const render::FillRectEventData & /*unused*/)const override ;
 
 public:
     std::string encode(const render::Config & /*unused*/, unsigned int /*unused*/)const override;

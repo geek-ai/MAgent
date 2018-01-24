@@ -22,11 +22,15 @@ class Base : public render::Unique {
 private:
     virtual T encode(const render::AgentData &)const = 0;
 
-    virtual T encode(const render::EventData &)const = 0;
+    virtual T encode(const render::AttackEventData &)const = 0;
+
+    virtual T encode(const render::StrokeEventData &)const = 0;
 
     virtual T encode(const render::BreadData &)const = 0;
 
     virtual T encode(const render::Config &, unsigned int)const = 0;
+
+    virtual T encode(const render::FillRectEventData &)const = 0;
 
 public:
 
