@@ -60,6 +60,14 @@ int gridworld_add_reward_rule(EnvHandle game, int on, int *receiver, float *valu
 int discrete_snake_clear_dead(EnvHandle game);
 int discrete_snake_add_object(EnvHandle game, int obj_id, int n, const char *method, const int *linear_buffer);
 
+/**
+ * TransCity special
+ */
+int trans_city_add_object(EnvHandle game, int obj_id, int n, const char *method, const int *linear_buffer);
+
+// run step
+int trans_city_clear_dead(EnvHandle game);
+
 
 /**
  * Temporary C Booster

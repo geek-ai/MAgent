@@ -9,7 +9,7 @@ IF (APPLE)
     link_directories("/usr/local/lib/")
 ENDIF()
 
-file(GLOB autopilot_sources src/*.cc src/gridworld/*.cc src/discrete_snake/*.cc src/utility/*.cc)
+file(GLOB autopilot_sources src/*.cc src/gridworld/*.cc src/discrete_snake/*.cc src/utility/*.cc src/trans_city/*.cc)
 set(LIB_SRC_FILES ${autopilot_sources})
 
 file(GLOB autopilot_sources src/render/*.cc src/render/*/*.cc src/render/*/*/*.cc)

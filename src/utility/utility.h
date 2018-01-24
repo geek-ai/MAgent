@@ -99,9 +99,12 @@ private:
 #define LOG_WARNING_ENABLE 0
 #endif
 
+#define LOG_INFO_ENABLE 1
+
 #define LOG_TRACE   if (!LOG_TRACE_ENABLE) ; else magent::utility::Logger<>(nullptr, 0)
 #define LOG_FATAL   magent::utility::Logger<true>(__FILE__, __LINE__)
 #define LOG_ERROR   magent::utility::Logger<>(__FILE__, __LINE__)
+#define LOG_INFO    if (!LOG_INFO_ENABLE) ; else magent::utility::Logger<>(nullptr, 0)
 #define LOG_WARNING if (!LOG_WARNING_ENABLE) ; else magent::utility::Logger<>(__FILE__, __LINE__)
 
 } // namespace utility

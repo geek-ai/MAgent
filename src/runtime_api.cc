@@ -6,6 +6,7 @@
 #include "Environment.h"
 #include "gridworld/GridWorld.h"
 #include "discrete_snake/DiscreteSnake.h"
+#include "trans_city/TransCity.h"
 #include "utility/utility.h"
 #include "runtime_api.h"
 
@@ -19,6 +20,8 @@ int env_new_game(EnvHandle *game, const char *name) {
         *game = new ::magent::gridworld::GridWorld();
     } else if (strequ(name, "DiscreteSnake")) {
         *game = new ::magent::discrete_snake::DiscreteSnake();
+    } else if (strequ(name, "TransCity")) {
+        *game = new ::magent::trans_city::TransCity();
     } else {
         throw std::invalid_argument("invalid name of game");
     }
@@ -157,7 +160,24 @@ int discrete_snake_add_object(EnvHandle game, int obj_id, int n, const char *met
 
 // run step
 int discrete_snake_clear_dead(EnvHandle game) {
-    LOG(TRACE) << "gridworld clear dead.  ";
+    LOG(TRACE) << "discrete snake clear dead.  ";
     ((::magent::discrete_snake::DiscreteSnake *)game)->clear_dead();
+    return 0;
+}
+
+/**
+ * TransCity special
+ */
+int trans_city_add_object(EnvHandle game, int obj_id, int n, const char *method, const int *linear_buffer) {
+    LOG(TRACE) << "trans city add object.  ";
+    ((::magent::trans_city::TransCity *)game)->add_object(obj_id, n, method, linear_buffer);
+    return 0;
+}
+
+
+// run step
+int trans_city_clear_dead(EnvHandle game) {
+    LOG(TRACE) << "tran city clear dead.  ";
+    ((::magent::trans_city::TransCity *)game)->clear_dead();
     return 0;
 }
