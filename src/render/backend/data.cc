@@ -57,7 +57,7 @@ void Frame::load(std::istream & handle) {
     if (!handle) {
         throw RenderException("invalid file handle");
     }
-    if (!(handle >> nAgents >> nAttackEvents >> nStrokeEvents >> nBreads)) {
+    if (!(handle >> nAgents >> nAttackEvents >> nStrokeEvents >> nFillRectEvents >> nBreads)) {
         throw RenderException("cannot read nAgents and nEvents and nBreads");
     }
     if (agents != nullptr) {
@@ -73,6 +73,11 @@ void Frame::load(std::istream & handle) {
     if (strokeEvents != nullptr) {
         delete[](strokeEvents);
         strokeEvents = nullptr;
+    }
+
+    if (fillRectEvents != nullptr) {
+        delete[](fillRectEvents);
+        fillRectEvents = nullptr;
     }
 
     if (breads != nullptr) {
@@ -117,7 +122,7 @@ void Frame::load(std::istream & handle) {
 
     strokeEvents = new render::StrokeEventData[nStrokeEvents];
     try{
-        for (unsigned int i = 0, j = 0; i < nStrokeEvents; i++) {
+        for (unsigned int i = 0; i < nStrokeEvents; i++) {
             int type;
             if (!(handle >> type >> strokeEvents[i].positionA.x >> strokeEvents[i].positionA.y
                          >> strokeEvents[i].positionB.x >> strokeEvents[i].positionB.y
@@ -129,6 +134,23 @@ void Frame::load(std::istream & handle) {
         delete[](attackEvents);
         attackEvents = nullptr;
         nAttackEvents = 0;
+        throw;
+    }
+
+    fillRectEvents = new render::FillRectEventData[nFillRectEvents];
+    try{
+        for (unsigned int i = 0; i < nFillRectEvents; i++) {
+            int type;
+            if (!(handle >> type >> fillRectEvents[i].positionA.x >> fillRectEvents[i].positionA.y
+                         >> fillRectEvents[i].positionB.x >> fillRectEvents[i].positionB.y
+                         >> fillRectEvents[i].red >> fillRectEvents[i].green >> fillRectEvents[i].blue)) {
+                throw RenderException("cannot read the next rectangle fill event, map file may be broken");
+            }
+        }
+    } catch (const RenderException &e) {
+        delete[](fillRectEvents);
+        fillRectEvents = nullptr;
+        nFillRectEvents = 0;
         throw;
     }
 
@@ -162,14 +184,21 @@ Frame::~Frame() {
         delete[](breads);
         breads = nullptr;
     }
+
     if (strokeEvents != nullptr) {
         delete[](strokeEvents);
         strokeEvents = nullptr;
     }
+
+    if (fillRectEvents != nullptr) {
+        delete[](fillRectEvents);
+        fillRectEvents = nullptr;
+    }
 }
 
 Frame::Frame() : nAttackEvents(0), nStrokeEvents(0), nAgents(0), nBreads(0),
-                 agents(nullptr), attackEvents(nullptr), strokeEvents(nullptr), breads(nullptr) {
+                 agents(nullptr), attackEvents(nullptr), strokeEvents(nullptr),
+                 fillRectEvents(nullptr), breads(nullptr) {
 
 }
 
@@ -194,6 +223,14 @@ const unsigned int &Frame::getStrokeEventsNumber() const {
 
 const render::StrokeEventData &Frame::getStrokeEvent(unsigned int id) const {
     return strokeEvents[id];
+}
+
+const unsigned int &Frame::getFillRectEventsNumber() const {
+    return nFillRectEvents;
+}
+
+const render::FillRectEventData &Frame::getFillRectEvent(unsigned int id) const {
+    return fillRectEvents[id];
 }
 
 Buffer::~Buffer() {

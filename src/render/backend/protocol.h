@@ -30,6 +30,8 @@ private:
 
     virtual T encode(const render::Config &, unsigned int)const = 0;
 
+    virtual T encode(const render::FillRectEventData &)const = 0;
+
 public:
 
     virtual T encode(const render::Frame &, const render::Config &,

@@ -183,6 +183,16 @@ std::string Text::encode(const magent::render::Frame &frame,
         }
     }
 
+    result.append(";");
+    for (unsigned int i = 0, size = frame.getFillRectEventsNumber(), first = 1; i < size; i++) {
+        const render::FillRectEventData &data = frame.getFillRectEvent(i);
+        if (window.accept(data.positionA.x, data.positionA.y) or window.accept(data.positionB.x, data.positionB.y)) {
+            if (first == 0u) result.append("|");
+            result.append(encode(data));
+            first = 0;
+        }
+    }
+
     return result;
 }
 
@@ -200,6 +210,16 @@ std::string Text::encode(const render::StrokeEventData &stroke) const {
            + ' ' + std::to_string(stroke.red)
            + ' ' + std::to_string(stroke.green)
            + ' ' + std::to_string(stroke.blue);
+}
+
+std::string Text::encode(const render::FillRectEventData &rects) const {
+    return std::to_string(rects.positionA.x)
+           + ' ' + std::to_string(rects.positionA.y)
+           + ' ' + std::to_string(rects.positionB.x)
+           + ' ' + std::to_string(rects.positionB.y)
+           + ' ' + std::to_string(rects.red)
+           + ' ' + std::to_string(rects.green)
+           + ' ' + std::to_string(rects.blue);
 }
 
 } // namespace render

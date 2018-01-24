@@ -38,6 +38,11 @@ struct StrokeEventData {
     unsigned int red, green, blue;
 };
 
+struct FillRectEventData {
+    Coordinate positionA, positionB;
+    unsigned int red, green, blue;
+};
+
 struct Window {
     Coordinate wmin, wmax;
 
@@ -50,11 +55,12 @@ struct Window {
 
 class Frame : public render::Unique {
 private:
-    unsigned int nAgents, nAttackEvents, nStrokeEvents, nBreads;
+    unsigned int nAgents, nAttackEvents, nStrokeEvents, nFillRectEvents, nBreads;
     render::AgentData * agents;
     render::BreadData * breads;
     render::AttackEventData * attackEvents;
     render::StrokeEventData * strokeEvents;
+    render::FillRectEventData * fillRectEvents;
 
 public:
     explicit Frame();
@@ -67,6 +73,8 @@ public:
 
     const unsigned int & getStrokeEventsNumber() const;
 
+    const unsigned int & getFillRectEventsNumber() const;
+
     const unsigned int & getBreadsNumber() const;
 
     const render::AgentData & getAgent(unsigned int id) const;
@@ -74,6 +82,8 @@ public:
     const render::AttackEventData & getAttackEvent(unsigned int id) const;
 
     const render::StrokeEventData & getStrokeEvent(unsigned int id) const;
+
+    const render::FillRectEventData & getFillRectEvent(unsigned int id) const;
 
     const render::BreadData & getBread(unsigned int id) const;
 

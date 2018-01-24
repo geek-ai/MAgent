@@ -45,7 +45,7 @@ function _drawGrid() {
     var magentY = (Math.floor(_offsetY) - _offsetY) * gridSize;
     for (i = 0; i * gridSize < _gridCTX.canvas.height; i++) {
         _gridCTX.moveTo(0, i * gridSize + magentY);
-        _gridCTX.lineTo(_gridCTX.canvas.width, i * gridSize + magentY / gridSize);
+        _gridCTX.lineTo(_gridCTX.canvas.width, i * gridSize + magentY);
     }
     for (i = 0; i * gridSize < _gridCTX.canvas.width; i++) {
         _gridCTX.moveTo(i * gridSize + magentX, 0);
@@ -225,9 +225,9 @@ function run() {
                     _mapCurrentImage = 0;
                     _mapLastData = undefined;
                     _mapData = undefined;
-                    _offsetX = 0;
-                    _offsetY = 0;
                     gridSize = 10;
+                    _offsetX = _mapStyles['width'] / 2 - window.innerWidth / gridSize / 2;
+                    _offsetY = _mapStyles['height'] / 2 - window.innerHeight / gridSize / 2;
                     _mapAnimateTick = 0;
                     _mapSpeed = 80;
                     _mapForcedPause = false;
@@ -294,7 +294,7 @@ function run() {
                 case 'f':
                     _mapStatus = 'PLAY';
                     _mapLastData = _mapData;
-                    _mapData = [[], [], [], [], [], [], []];
+                    _mapData = [[], [], [], [], [], [], [], []];
 
                     data = data.split(';');
 
@@ -386,6 +386,24 @@ function run() {
                             ]);
                         }
                     }
+
+                    data[7] = data[7].split('|'); // Events
+                    for (var itFillRectEvents = 0, nFillRectEvents = data[7].length;
+                         itFillRectEvents < nFillRectEvents;
+                         itFillRectEvents++) {
+                        if (data[7][itFillRectEvents] !== '') {
+                            data[7][itFillRectEvents] = data[7][itFillRectEvents].split(' ');
+                            _mapData[7].push([
+                                parseInt(data[7][itFillRectEvents][0]),
+                                parseInt(data[7][itFillRectEvents][1]),
+                                parseInt(data[7][itFillRectEvents][2]),
+                                parseInt(data[7][itFillRectEvents][3]),
+                                parseInt(data[7][itFillRectEvents][4]),
+                                parseInt(data[7][itFillRectEvents][5]),
+                                parseInt(data[7][itFillRectEvents][6])
+                            ]);
+                        }
+                    }
                     break;
                 case 'e':
                     $.jGrowl(data, {position: 'bottom-right'});
@@ -433,7 +451,6 @@ function _getOriginGridCoordinate(curData, oldData, style) {
 }
 
 function _drawAgent() {
-    var counter = 0;
     _agentBodyCTX.clearRect(0, 0, _agentBodyCTX.canvas.width, _agentBodyCTX.canvas.height);
     _agentRangeCTX.clearRect(0, 0, _agentRangeCTX.canvas.width, _agentRangeCTX.canvas.height);
     _agentHPCTX.clearRect(0, 0, _agentHPCTX.canvas.width, _agentHPCTX.canvas.height);
@@ -556,28 +573,26 @@ function _drawEvent() {
         _eventCTX.beginPath();
         _eventCTX.strokeStyle = _mapStyles['attack-style'];
         for (var i = 0; i < _mapData[0].length; i++) {
-            if (_mapData[0][i][0] === 0) {
-                var id = _mapData[0][i][1];
-                if (_mapData[1][id] === undefined) {
-                    continue;
-                }
-                var style = _mapStyles['group'][_mapData[1][id][2]];
-                var result = _getOriginGridCoordinate(
-                    _mapData[1][id],
-                    _mapLastData !== undefined ? _mapLastData[1][id] : undefined,
-                    style
-                );
-                _eventCTX.rotate(result[2]);
-                _eventCTX.moveTo(
-                    result[0] * gridSize + style['height'] * gridSize / 2,
-                    result[1] * gridSize + style['width'] * gridSize / 2
-                );
-                _eventCTX.rotate(-result[2]);
-                _eventCTX.lineTo(
-                    _mapData[0][i][2] * gridSize + gridSize / 2 - _offsetX * gridSize,
-                    _mapData[0][i][3] * gridSize + gridSize / 2 - _offsetY * gridSize
-                );
+            var id = _mapData[0][i][0];
+            if (_mapData[1][id] === undefined) {
+                continue;
             }
+            var style = _mapStyles['group'][_mapData[1][id][2]];
+            var result = _getOriginGridCoordinate(
+                _mapData[1][id],
+                _mapLastData !== undefined ? _mapLastData[1][id] : undefined,
+                style
+            );
+            _eventCTX.rotate(result[2]);
+            _eventCTX.moveTo(
+                result[0] * gridSize + style['height'] * gridSize / 2,
+                result[1] * gridSize + style['width'] * gridSize / 2
+            );
+            _eventCTX.rotate(-result[2]);
+            _eventCTX.lineTo(
+                _mapData[0][i][1] * gridSize + gridSize / 2 - _offsetX * gridSize,
+                _mapData[0][i][2] * gridSize + gridSize / 2 - _offsetY * gridSize
+            );
         }
         _eventCTX.stroke();
         _eventCTX.beginPath();
@@ -618,6 +633,22 @@ function _drawEvent() {
             );
         }
         _eventCTX.stroke();
+        console.log(_mapData[7]);
+        for (i = 0; i < _mapData[7].length; i++) {
+            _eventCTX.beginPath();
+            _eventCTX.fillStyle = 'rgba('
+                + _mapData[7][i][4].toString() + ','
+                + _mapData[7][i][5].toString() + ','
+                + _mapData[7][i][6].toString() + ','
+                + '1)';
+            _eventCTX.rect(
+                _mapData[7][i][0] * gridSize - _offsetX * gridSize,
+                _mapData[7][i][1] * gridSize - _offsetY * gridSize,
+                (_mapData[7][i][2] - _mapData[7][i][0]) * gridSize,
+                (_mapData[7][i][3] - _mapData[7][i][1]) * gridSize
+            );
+            _eventCTX.fill();
+        }
     }
 }
 
