@@ -616,8 +616,8 @@ function _drawEvent() {
             );
         }
         _eventCTX.fill();
-        _eventCTX.beginPath();
         for (i = 0; i < _mapData[6].length; i++) {
+            _eventCTX.beginPath();
             _eventCTX.strokeStyle = 'rgba('
                 + _mapData[6][i][4].toString() + ','
                 + _mapData[6][i][5].toString() + ','
@@ -631,9 +631,8 @@ function _drawEvent() {
                 _mapData[6][i][2] * gridSize - _offsetX * gridSize,
                 _mapData[6][i][3] * gridSize - _offsetY * gridSize
             );
+            _eventCTX.stroke();
         }
-        _eventCTX.stroke();
-        console.log(_mapData[7]);
         for (i = 0; i < _mapData[7].length; i++) {
             _eventCTX.beginPath();
             _eventCTX.fillStyle = 'rgba('
