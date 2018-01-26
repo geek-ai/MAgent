@@ -186,7 +186,9 @@ std::string Text::encode(const magent::render::Frame &frame,
     result.append(";");
     for (unsigned int i = 0, size = frame.getFillRectEventsNumber(), first = 1; i < size; i++) {
         const render::FillRectEventData &data = frame.getFillRectEvent(i);
-        if (window.accept(data.positionA.x, data.positionA.y) or window.accept(data.positionB.x, data.positionB.y)) {
+        if (window.accept(data.positionA.x, data.positionA.y) or window.accept(data.positionB.x, data.positionB.y) or
+                window.accept(data.positionA.x, data.positionB.y) or window.accept(data.positionB.x, data.positionA.y))
+        {
             if (first == 0u) result.append("|");
             result.append(encode(data));
             first = 0;

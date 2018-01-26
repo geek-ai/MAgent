@@ -26,7 +26,6 @@ def get_config(map_size):
     return cfg
 
 
-leftID, rightID = 0, 1
 def generate_map(env, map_size, handles):
     """ generate a map, which consists of two squares of agents and vertical lines"""
     build_width = 10

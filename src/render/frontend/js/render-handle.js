@@ -516,22 +516,7 @@ function _drawAgent() {
                 _agentRangeCTX.fill();
                 _agentRangeCTX.rotate(-result[2]);
 
-                if (gridSize >= 6) {
-                    _agentHPCTX.beginPath();
-                    _agentHPCTX.rotate(result[2]);
-                    _agentHPCTX.rect(
-                        originXMaster * gridSize,
-                        originYMaster * gridSize,
-                        gridSize / 4,
-                        style['width'] * gridSize
-                    );
-                    _agentHPCTX.strokeStyle = "rgba(0,0,0,1)";
-                    //_agentHPCTX.stroke();
-                    _agentHPCTX.fillStyle = "rgba(255,255,255,1)";
-                    _agentHPCTX.fill();
-
-                    _agentHPCTX.beginPath();
-                    _agentHPCTX.fillStyle = style['style'];
+                if (gridSize >= 6 && false) {
                     var hp;
                     var rate = Math.min(_mapAnimateTick, ANIMATE_STEP) / ANIMATE_STEP;
                     if (_mapLastData !== undefined && _mapLastData[1].hasOwnProperty(agentID)) {
@@ -539,14 +524,31 @@ function _drawAgent() {
                     } else {
                         hp = _mapData[1][agentID][4];
                     }
-                    _agentHPCTX.rect(
-                        originXMaster * gridSize,
-                        originYMaster * gridSize + (100 - hp) / 100 * style['width'] * gridSize,
-                        gridSize / 4,
-                        hp / 100 * style['width'] * gridSize
-                    );
-                    _agentHPCTX.fill();
-                    _agentHPCTX.rotate(-result[2]);
+                    if (hp >= 0) {
+                        _agentHPCTX.beginPath();
+                        _agentHPCTX.rotate(result[2]);
+                        _agentHPCTX.rect(
+                            originXMaster * gridSize,
+                            originYMaster * gridSize,
+                            gridSize / 4,
+                            style['width'] * gridSize
+                        );
+                        _agentHPCTX.strokeStyle = "rgba(0,0,0,1)";
+                        //_agentHPCTX.stroke();
+                        _agentHPCTX.fillStyle = "rgba(255,255,255,1)";
+                        _agentHPCTX.fill();
+
+                        _agentHPCTX.beginPath();
+                        _agentHPCTX.fillStyle = style['style'];
+                        _agentHPCTX.rect(
+                            originXMaster * gridSize,
+                            originYMaster * gridSize + (100 - hp) / 100 * style['width'] * gridSize,
+                            gridSize / 4,
+                            hp / 100 * style['width'] * gridSize
+                        );
+                        _agentHPCTX.fill();
+                        _agentHPCTX.rotate(-result[2]);
+                    }
                 }
             }
         }
@@ -616,38 +618,36 @@ function _drawEvent() {
             );
         }
         _eventCTX.fill();
-        for (i = 0; i < _mapData[6].length; i++) {
-            _eventCTX.beginPath();
-            _eventCTX.strokeStyle = 'rgba('
-                + _mapData[6][i][4].toString() + ','
-                + _mapData[6][i][5].toString() + ','
-                + _mapData[6][i][6].toString() + ','
-                + '1)';
-            _eventCTX.moveTo(
-                _mapData[6][i][0] * gridSize - _offsetX * gridSize,
-                _mapData[6][i][1] * gridSize - _offsetY * gridSize
-            );
-            _eventCTX.lineTo(
-                _mapData[6][i][2] * gridSize - _offsetX * gridSize,
-                _mapData[6][i][3] * gridSize - _offsetY * gridSize
-            );
-            _eventCTX.stroke();
-        }
-        for (i = 0; i < _mapData[7].length; i++) {
-            _eventCTX.beginPath();
-            _eventCTX.fillStyle = 'rgba('
-                + _mapData[7][i][4].toString() + ','
-                + _mapData[7][i][5].toString() + ','
-                + _mapData[7][i][6].toString() + ','
-                + '1)';
-            _eventCTX.rect(
-                _mapData[7][i][0] * gridSize - _offsetX * gridSize,
-                _mapData[7][i][1] * gridSize - _offsetY * gridSize,
-                (_mapData[7][i][2] - _mapData[7][i][0]) * gridSize,
-                (_mapData[7][i][3] - _mapData[7][i][1]) * gridSize
-            );
-            _eventCTX.fill();
-        }
+    }
+    for (i = 0; i < _mapData[6].length; i++) {
+        _eventCTX.beginPath();
+        _eventCTX.fillStyle = 'rgba('
+            + _mapData[6][i][4].toString() + ','
+            + _mapData[6][i][5].toString() + ','
+            + _mapData[6][i][6].toString() + ','
+            + '0.8)';
+        _eventCTX.rect(
+            _mapData[6][i][0] * gridSize - _offsetX * gridSize - 2,
+            _mapData[6][i][1] * gridSize - _offsetY * gridSize - 2,
+            (_mapData[6][i][2] - _mapData[6][i][0]) * gridSize + 2,
+            (_mapData[6][i][3] - _mapData[6][i][1]) * gridSize + 2
+        );
+        _eventCTX.fill();
+    }
+    for (i = 0; i < _mapData[7].length; i++) {
+        _eventCTX.beginPath();
+        _eventCTX.fillStyle = 'rgba('
+            + _mapData[7][i][4].toString() + ','
+            + _mapData[7][i][5].toString() + ','
+            + _mapData[7][i][6].toString() + ','
+            + '1)';
+        _eventCTX.rect(
+            _mapData[7][i][0] * gridSize - _offsetX * gridSize,
+            _mapData[7][i][1] * gridSize - _offsetY * gridSize,
+            (_mapData[7][i][2] - _mapData[7][i][0]) * gridSize,
+            (_mapData[7][i][3] - _mapData[7][i][1]) * gridSize
+        );
+        _eventCTX.fill();
     }
 }
 
