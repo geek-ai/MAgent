@@ -625,12 +625,12 @@ function _drawEvent() {
             + _mapData[6][i][4].toString() + ','
             + _mapData[6][i][5].toString() + ','
             + _mapData[6][i][6].toString() + ','
-            + '0.8)';
+            + '0.3)';
         _eventCTX.rect(
-            _mapData[6][i][0] * gridSize - _offsetX * gridSize - 2,
-            _mapData[6][i][1] * gridSize - _offsetY * gridSize - 2,
-            (_mapData[6][i][2] - _mapData[6][i][0]) * gridSize + 2,
-            (_mapData[6][i][3] - _mapData[6][i][1]) * gridSize + 2
+            _mapData[6][i][0] * gridSize - _offsetX * gridSize - 3 * gridSize / 20,
+            _mapData[6][i][1] * gridSize - _offsetY * gridSize - 3 * gridSize / 20,
+            (_mapData[6][i][2] - _mapData[6][i][0]) * gridSize + 6 * gridSize / 20,
+            (_mapData[6][i][3] - _mapData[6][i][1]) * gridSize + 6 * gridSize / 20
         );
         _eventCTX.fill();
     }
