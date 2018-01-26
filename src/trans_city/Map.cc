@@ -17,7 +17,7 @@ Map::~Map() {
     delete [] slots;
 }
 
-void Map::reset(int width, int height) {
+void Map::reset(std::vector<Position> &maps, int width, int height) {
     if (slots != nullptr)
         delete [] slots;
     slots = new Slot[width * height];
@@ -33,10 +33,14 @@ void Map::reset(int width, int height) {
     for (int i = 0; i < map_width; i++) {
         add_wall(Position{i, 0});
         add_wall(Position{i, map_height - 1});
+        maps.emplace_back(Position{i, 0});
+        maps.emplace_back(Position{i, map_height - 1});
     }
     for (int i = 0; i < map_height; i++) {
         add_wall(Position{0, i});
         add_wall(Position{map_width - 1, i});
+        maps.emplace_back(Position{0, i});
+        maps.emplace_back(Position{map_height - 1, i});
     }
 }
 
@@ -157,12 +161,6 @@ void Map::extract_view(const Agent* agent, float *linear_buffer, int height, int
     }
 }
 
-void Map::get_wall(std::vector<Position> &walls) const {
-    for (int i = 0; i < map_width * map_height; i++) {
-        if (slots[i].occ_type == OCC_WALL)
-            walls.push_back(int2pos(i));
-    }
-}
 
 } // namespace trans_city
 } // namespace magent

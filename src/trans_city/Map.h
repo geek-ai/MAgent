@@ -29,14 +29,12 @@ public:
     Map();
     ~Map();
 
-    void reset(int width, int height);
+    void reset(std::vector<Position> &walls, int width, int height);
 
     int add_agent(Agent* agent);
     int add_wall(Position pos);
     int add_light(Position pos, int w, int h);
     int add_park(Position pos);
-
-    void get_wall(std::vector<Position> &walls) const;
 
     Position get_random_blank(std::default_random_engine &random_engine);
     void extract_view(const Agent* agent, float *linear_buffer, int height, int width, int channel);

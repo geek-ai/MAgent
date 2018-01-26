@@ -29,7 +29,7 @@ TransCity::~TransCity() {
 void TransCity::reset() {
     id_counter = 0;
 
-    map.reset(width, height);
+    map.reset(walls, width, height);
 
     for (int i = 0; i < agents.size(); i++) {
         delete agents[i];
@@ -88,7 +88,7 @@ void TransCity::add_object(int obj_id, int n, const char *method, const int *lin
         }
     } else if (obj_id == -3) { // park
         if (strequ(method, "custom")) {
-            NDPointer<const int, 4> buf(linear_buffer, {{n, 4}});
+            NDPointer<const int, 2> buf(linear_buffer, {{n, 4}});
             for (int i = 0; i < n; i++) {
                 map.add_park(Position{buf.at(i, 0), buf.at(i, 1)});
                 parks.emplace_back(Park(Position{buf.at(i, 0), buf.at(i, 1)}, buf.at(i, 2), buf.at(i, 3)));
@@ -120,6 +120,16 @@ void TransCity::add_object(int obj_id, int n, const char *method, const int *lin
                 pos = map.get_random_blank(random_engine);
                 agent->set_pos(pos);
 
+                map.add_agent(agent);
+                agents.push_back(agent);
+            }
+        } else if (strequ(method, "custom")) {
+            NDPointer<const int, 2> buf(linear_buffer, {{n, 2}});
+
+            for (int i = 0; i < n; i++) {
+                Agent *agent = new Agent(id_counter);
+
+                agent->set_pos(Position{buf.at(i, 0), buf.at(i, 1)});
                 map.add_agent(agent);
                 agents.push_back(agent);
             }

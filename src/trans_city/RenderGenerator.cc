@@ -154,9 +154,10 @@ void RenderGenerator::render_a_frame(const std::vector<Agent *> &agents,
         }
     }
 
-    fout << "F" << " " << agents.size() + lights.size() * 4 + parks.size()
+    fout << "F" << " " << agents.size() + parks.size()
                 << " " << 0                  // attack
                 << " " << lights.size() * 4  // light lines
+                << " " << buildings.size()   // rectangle
                 << " " << 0                  // food
                 << std::endl;
 
@@ -164,22 +165,29 @@ void RenderGenerator::render_a_frame(const std::vector<Agent *> &agents,
     int hp = 100;
     int dir = dir2angle[3];
 
+    // draw point
     for (auto agent : agents) {
         Position pos = agent->get_pos();
-        fout << id_ct++ << " " << hp << " " << dir << " " << pos.x << " " << pos.y << 0 << std::endl;
+        fout << id_ct++ << " " << hp << " " << dir << " " << pos.x << " " << pos.y << " " << 0 << std::endl;
     }
 
-    for (auto light : lights) {
-        Position pos = light.get_pos();
-        fout << id_ct++ << " " << hp << " " << dir << " " << pos.x << " " << pos.y << 0 << std::endl;
-    }
+//    for (auto light : lights) {
+//        int status = light.get_status();
+//        int x, y, w, h;
+//        std::tie(x, y, w, h) = light.get_location();
+//        fout << id_ct++ << " " << hp << " " << dir << " " << x << " " << y << " " << 1 << std::endl;
+//        fout << id_ct++ << " " << hp << " " << dir << " " << x << " " << y+h << " " << 1 << std::endl;
+//        fout << id_ct++ << " " << hp << " " << dir << " " << x+w << " " << y << " " << 1 << std::endl;
+//        fout << id_ct++ << " " << hp << " " << dir << " " << x+w << " " << y+h << " " << 1 << std::endl;
+//    }
 
     for (auto park : parks) {
         Position pos = park.get_pos();
-        fout << id_ct++ << " " << hp << " " << dir << " " << pos.x << " " << pos.y << 0 << std::endl;
+        fout << id_ct++ << " " << hp << " " << dir << " " << pos.x << " " << pos.y << " " << 2 << std::endl;
     }
 
-    std::string color[] = {
+    // draw lines
+    std::string light_color[] = {
             " 255 0 0",
             " 0 255 0",
     };
@@ -188,15 +196,25 @@ void RenderGenerator::render_a_frame(const std::vector<Agent *> &agents,
         int x, y, w, h;
         std::tie(x, y, w, h) = light.get_location();
         //
-        fout << "1" << " " << x << " " << y << " " << x + w << " " << y << color[status] << std::endl;
-        fout << "1" << " " << x << " " << y + h << " " << x + w << " " << y + h << color[status] << std::endl;
-        fout << "1" << " " << x << " " << y << " " << x << " " << y + h << color[1 - status] << std::endl;
-        fout << "1" << " " << x + w << " " << y << " " << x + w << " " << y + h << color[1 - status] << std::endl;
+        fout << "1" << " " << x+1  << " " << y+1 << " " << x + w << " " << y+1 << light_color[status] << std::endl;
+        fout << "1" << " " << x+1 << " " << y + h << " " << x + w << " " << y + h << light_color[status] << std::endl;
+        fout << "1" << " " << x+1 << " " << y+1 << " " << x+1 << " " << y + h << light_color[1 - status] << std::endl;
+        fout << "1" << " " << x + w << " " << y+1 << " " << x + w << " " << y + h << light_color[1 - status] << std::endl;
     }
 
     if (frame_ct++ > frame_per_file) {
         frame_ct = 0;
         file_ct++;
+    }
+
+    std::string building_colors[] = {
+            " 200 200 200"
+    };
+
+    for (auto building : buildings) {
+        int x, y, w, h;
+        std::tie(x, y, w, h) = building.get_location();
+        fout << "2" << " " << x << " " << y << " " << x + w << " " << y + h << " " << building_colors[0] << std::endl;
     }
 }
 

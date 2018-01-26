@@ -29,7 +29,49 @@ def get_config(map_size):
 leftID, rightID = 0, 1
 def generate_map(env, map_size, handles):
     """ generate a map, which consists of two squares of agents and vertical lines"""
-    env.add_agents(method="random", n=10)
+    build_width = 10
+    build_height = 10
+
+    road_width = 4
+    road_height = road_width
+
+    margin = 3
+
+    build_pos = []
+    light_pos = []
+    for x in range(margin, map_size, build_width + road_width):
+        for y in range(margin, map_size, build_height + road_height):
+            build_pos.append([x, y, build_width, build_height])
+            light_pos.append([x - 1 + build_width, y - 1 + build_height, road_width+1, road_height+1])
+
+    def f(loc):
+        return loc[0] + loc[2] < map_size and loc[1] + loc[3] < map_size
+
+    build_pos = filter(f, build_pos)
+    light_pos = filter(f, light_pos)
+
+    env.add_buildings(method="custom", pos=build_pos)
+    env.add_traffic_lights(method="custom", pos=light_pos)
+
+    filled = set()
+    for pos in build_pos + light_pos:
+        x0, y0, w, h = pos
+        for x in range(x0, x0+w):
+            for y in range(y0, y0+h):
+                filled.add((x, y))
+
+    n = map_size * map_size * 0.01
+    agent_pos = []
+    i = 0
+    while i < n:
+        x, y = np.random.randint(1, map_size-1), np.random.randint(1, map_size-1)
+        while (x, y) in filled:
+            x, y = np.random.randint(1, map_size-1), np.random.randint(1, map_size-1)
+
+        agent_pos.append([x, y])
+        i += 1
+
+    env.add_agents(method="custom", pos=agent_pos)
 
 
 def play_a_round(env, map_size, handles, models, print_every, train=True, render=False, eps=None):
