@@ -56,11 +56,25 @@ void RenderGenerator::gen_config(int w, int h) {
     std::ofstream f_config(save_dir + "/" + "config.json");
 
     int colors[][3] = {
-            {192, 64, 64},
-            {64, 64, 192},
-            {64, 192, 64},
+        {248, 12, 18},
+        {238, 17, 0},
+        {255, 51, 17},
+        {255, 68, 34},
+        {255, 102, 68},
+        {255, 153, 51},
+        {254, 174, 45},
+        {204, 187, 51},
+        {208, 195, 16},
+        {170, 204, 34},
+        {105, 208, 37},
+        {34, 204, 170},
+        {18, 189, 185},
+        {17, 170, 187},
+        {68, 68, 221},
+        {51, 17, 187},
+        {59, 12, 189},
+        {68, 34, 153},
     };
-    int i;
 
     f_config << "{" << std::endl;
     print_json(f_config, "width", w);
@@ -74,61 +88,28 @@ void RenderGenerator::gen_config(int w, int h) {
 
     // groups
     f_config << "\"group\" : [" << std::endl;
+    for (int i = 0; i < sizeof(colors)/sizeof(colors[0]); i++) {
+        f_config << "{" << std::endl;
 
-    // car
-    i = 0;
-    f_config << "{" << std::endl;
-    print_json(f_config, "height", 1);
-    print_json(f_config, "width", 1);
-    print_json(f_config, "style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 1));
-    print_json(f_config, "anchor", "[0, 0]");
-    print_json(f_config, "max-speed", 0);
-    print_json(f_config, "speed-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.01));
-    print_json(f_config, "vision-radius", 0);
-    print_json(f_config, "vision-angle", 0);
-    print_json(f_config, "vision-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.2));
-    print_json(f_config, "attack-radius", 0);
-    print_json(f_config, "attack-angle", 0);
-    print_json(f_config, "attack-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.1));
-    print_json(f_config, "broadcast-radius", 1, true);
-    f_config << "}," << std::endl;
+        print_json(f_config, "height", 1);
+        print_json(f_config, "width", 1);
+        print_json(f_config, "style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 1));
+        print_json(f_config, "anchor", "[0, 0]");
+        print_json(f_config, "max-speed", (int)0);
+        print_json(f_config, "speed-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.01));
+        print_json(f_config, "vision-radius", 0);
+        print_json(f_config, "vision-angle", 0);
+        print_json(f_config, "vision-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.2));
+        print_json(f_config, "attack-radius", 0);
+        print_json(f_config, "attack-angle", 0);
+        print_json(f_config, "attack-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.1));
+        print_json(f_config, "broadcast-radius", 1, true);
 
-    // light
-    i = 1;
-    f_config << "{" << std::endl;
-    print_json(f_config, "height", 1);
-    print_json(f_config, "width", 1);
-    print_json(f_config, "style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 1));
-    print_json(f_config, "anchor", "[0, 0]");
-    print_json(f_config, "max-speed", 0);
-    print_json(f_config, "speed-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.01));
-    print_json(f_config, "vision-radius", 0);
-    print_json(f_config, "vision-angle", 0);
-    print_json(f_config, "vision-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.2));
-    print_json(f_config, "attack-radius", 0);
-    print_json(f_config, "attack-angle", 0);
-    print_json(f_config, "attack-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.1));
-    print_json(f_config, "broadcast-radius", 1, true);
-    f_config << "}," << std::endl;
-
-    // park
-    i = 2;
-    f_config << "{" << std::endl;
-    print_json(f_config, "height", 1);
-    print_json(f_config, "width", 1);
-    print_json(f_config, "style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.9));
-    print_json(f_config, "anchor", "[0, 0]");
-    print_json(f_config, "max-speed", 0);
-    print_json(f_config, "speed-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.01));
-    print_json(f_config, "vision-radius", 0);
-    print_json(f_config, "vision-angle", 0);
-    print_json(f_config, "vision-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.2));
-    print_json(f_config, "attack-radius", 0);
-    print_json(f_config, "attack-angle", 0);
-    print_json(f_config, "attack-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.1));
-    print_json(f_config, "broadcast-radius", 1, true);
-    f_config << "}" << std::endl;
-
+        if (i == sizeof(colors)/sizeof(colors[0]) - 1)
+            f_config << "}" << std::endl;
+        else
+            f_config << "}," << std::endl;
+    }
     f_config << "]" << std::endl;
     f_config << "}" << std::endl;
 }
@@ -142,6 +123,39 @@ void RenderGenerator::render_a_frame(const std::vector<Agent *> &agents,
     if (save_dir == "")
         return;
 
+    std::string light_color[] = {
+            " 255 0 0",
+            " 0 255 0",
+    };
+    std::string building_colors[] = {
+            " 200 200 200"
+    };
+    std::string light_tower_colors[] = {
+            " 240 240 0"
+    };
+    std::string white_color = " 255 255 255";
+    int colors[][3] = {
+            {248, 12, 18},
+            {238, 17, 0},
+            {255, 51, 17},
+            {255, 68, 34},
+            {255, 102, 68},
+            {255, 153, 51},
+            {254, 174, 45},
+            {204, 187, 51},
+            {208, 195, 16},
+            {170, 204, 34},
+            {105, 208, 37},
+            {34, 204, 170},
+            {18, 189, 185},
+            {17, 170, 187},
+            {68, 68, 221},
+            {51, 17, 187},
+            {59, 12, 189},
+            {68, 34, 153},
+    };
+
+
     std::string filename = save_dir + "/" + "video_" + std::to_string(file_ct) + ".txt";
     std::ofstream fout(filename.c_str(), frame_ct == 0 ? std::ios::out : std::ios::app);
 
@@ -154,52 +168,50 @@ void RenderGenerator::render_a_frame(const std::vector<Agent *> &agents,
         }
     }
 
-    fout << "F" << " " << agents.size() + parks.size()
+    fout << "F" << " " << agents.size()
                 << " " << 0                  // attack
-                << " " << lights.size() * 4  // light lines
-                << " " << buildings.size()   // rectangle
+                << " " << lights.size() * 2  // light lines
+                << " " << buildings.size() + lights.size() * 4 // rectangle
                 << " " << 0                  // food
                 << std::endl;
 
     const int dir2angle[] = {0, 90, 180, 270};
-    int hp = 100;
+    int hp = -1;
     int dir = dir2angle[3];
 
-    // draw point
+    // draw point (car)
     for (auto agent : agents) {
         Position pos = agent->get_pos();
-        fout << id_ct++ << " " << hp << " " << dir << " " << pos.x << " " << pos.y << " " << 0 << std::endl;
-    }
-
-//    for (auto light : lights) {
-//        int status = light.get_status();
-//        int x, y, w, h;
-//        std::tie(x, y, w, h) = light.get_location();
-//        fout << id_ct++ << " " << hp << " " << dir << " " << x << " " << y << " " << 1 << std::endl;
-//        fout << id_ct++ << " " << hp << " " << dir << " " << x << " " << y+h << " " << 1 << std::endl;
-//        fout << id_ct++ << " " << hp << " " << dir << " " << x+w << " " << y << " " << 1 << std::endl;
-//        fout << id_ct++ << " " << hp << " " << dir << " " << x+w << " " << y+h << " " << 1 << std::endl;
-//    }
-
-    for (auto park : parks) {
-        Position pos = park.get_pos();
-        fout << id_ct++ << " " << hp << " " << dir << " " << pos.x << " " << pos.y << " " << 2 << std::endl;
+        fout << id_ct++ << " " << hp << " " << dir << " " << pos.x << " " << pos.y << " " << agent->get_color() << std::endl;
     }
 
     // draw lines
-    std::string light_color[] = {
-            " 255 0 0",
-            " 0 255 0",
-    };
     for (auto light : lights) {
         int status = light.get_status();
         int x, y, w, h;
+        int mask = light.get_mask();
         std::tie(x, y, w, h) = light.get_location();
-        //
-        fout << "1" << " " << x+1  << " " << y+1 << " " << x + w << " " << y+1 << light_color[status] << std::endl;
-        fout << "1" << " " << x+1 << " " << y + h << " " << x + w << " " << y + h << light_color[status] << std::endl;
-        fout << "1" << " " << x+1 << " " << y+1 << " " << x+1 << " " << y + h << light_color[1 - status] << std::endl;
-        fout << "1" << " " << x + w << " " << y+1 << " " << x + w << " " << y + h << light_color[1 - status] << std::endl;
+
+        if (status == 0) {
+            if (mask & 0x01)
+                fout << "1" << " " << x+1  << " " << y+1 << " " << x + w << " " << y+1 << light_color[status] << std::endl;
+            else
+                fout << "1" << " " << x+1  << " " << y+1 << " " << x + w << " " << y+1 << white_color << std::endl;
+            if (mask & 0x04)
+                fout << "1" << " " << x+1 << " " << y + h << " " << x + w << " " << y + h << light_color[status] << std::endl;
+            else
+                fout << "1" << " " << x+1 << " " << y + h << " " << x + w << " " << y + h << white_color << std::endl;
+        } else {
+            if (mask & 0x02)
+                fout << "1" << " " << x+1 << " " << y+1 << " " << x+1 << " " << y + h << light_color[1 - status] << std::endl;
+            else
+                fout << "1" << " " << x+1 << " " << y+1 << " " << x+1 << " " << y + h << white_color << std::endl;
+
+            if (mask & 0x08)
+                fout << "1" << " " << x + w << " " << y+1 << " " << x + w << " " << y + h << light_color[1 - status] << std::endl;
+            else
+                fout << "1" << " " << x + w << " " << y+1 << " " << x + w << " " << y + h << white_color << std::endl;
+        }
     }
 
     if (frame_ct++ > frame_per_file) {
@@ -207,15 +219,29 @@ void RenderGenerator::render_a_frame(const std::vector<Agent *> &agents,
         file_ct++;
     }
 
-    std::string building_colors[] = {
-            " 200 200 200"
-    };
-
+    // draw rectangles (building + light tower + park)
     for (auto building : buildings) {
         int x, y, w, h;
         std::tie(x, y, w, h) = building.get_location();
         fout << "2" << " " << x << " " << y << " " << x + w << " " << y + h << " " << building_colors[0] << std::endl;
     }
+
+    for (auto light : lights) {
+        int status = light.get_status();
+        int x, y, w, h;
+        std::tie(x, y, w, h) = light.get_location();
+        fout << "2" << " " << x << " " << y << " " << x + 1 << " " << y + 1 << " " << light_tower_colors[0] << std::endl;
+        fout << "2" << " " << x+w << " " << y << " " << x+w + 1 << " " << y + 1 << " " << light_tower_colors[0] << std::endl;
+        fout << "2" << " " << x << " " << y+h << " " << x + 1 << " " << y+h + 1 << " " << light_tower_colors[0] << std::endl;
+        fout << "2" << " " << x+w << " " << y+h << " " << x+w + 1 << " " << y+h + 1 << " " << light_tower_colors[0] << std::endl;
+    }
+
+    for (int i = 0; i < parks.size(); i++) {
+        int x, y, w, h;
+        std::tie(x, y, w, h) = parks[i].get_location();
+        fout << "2" << " " << x+w << " " << y+h << " " << x+w + 1 << " " << y+h + 1 << " " << colors[i] << std::endl;
+    }
+
 }
 
 

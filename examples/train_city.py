@@ -13,6 +13,7 @@ import numpy as np
 
 import magent
 from magent.builtin.tf_model import DeepQNetwork, DeepRecurrentQNetwork
+from magent.builtin.rule_model import RandomActor
 
 
 def get_config(map_size):
@@ -63,9 +64,9 @@ def generate_map(env, map_size, handles):
     agent_pos = []
     i = 0
     while i < n:
-        x, y = np.random.randint(1, map_size-1), np.random.randint(1, map_size-1)
+        x, y = np.random.randint(1, map_size-2), np.random.randint(1, map_size-2)
         while (x, y) in filled:
-            x, y = np.random.randint(1, map_size-1), np.random.randint(1, map_size-1)
+            x, y = np.random.randint(1, map_size-2), np.random.randint(1, map_size-2)
 
         agent_pos.append([x, y])
         i += 1
@@ -77,8 +78,6 @@ def play_a_round(env, map_size, handles, models, print_every, train=True, render
     env.reset()
 
     generate_map(env, map_size, handles)
-    env.render()
-    exit()
 
     step_ct = 0
     done = False
@@ -100,6 +99,7 @@ def play_a_round(env, map_size, handles, models, print_every, train=True, render
             obs[i] = env.get_observation(handles[i])
             ids[i] = env.get_agent_id(handles[i])
             acts[i] = models[i].infer_action(obs[i], ids[i], 'e_greedy', eps=eps)
+            acts[i][:] = 3
             env.set_action(handles[i], acts[i])
 
         # simulate one step
@@ -130,7 +130,7 @@ def play_a_round(env, map_size, handles, models, print_every, train=True, render
             print("step %3d,  nums: %s reward: %s,  total_reward: %s " %
                   (step_ct, nums, np.around(step_reward, 2), np.around(total_reward, 2)))
         step_ct += 1
-        if step_ct > 550:
+        if step_ct > 300:
             break
 
     sample_time = time.time() - start_time
@@ -179,10 +179,11 @@ if __name__ == "__main__":
     handles = [0]
 
     models = []
-    models.append(DeepQNetwork(env, handles[0], "cars",
-                               batch_size=batch_size,
-                               memory_size=2 ** 20, target_update=target_update,
-                               train_freq=train_freq))
+    # models.append(DeepQNetwork(env, handles[0], "cars",
+    #                            batch_size=batch_size,
+    #                            memory_size=2 ** 20, target_update=target_update,
+    #                            train_freq=train_freq))
+    models.append(RandomActor(env, handles[0], "cars"))
 
     # load if
     savedir = 'save_model'

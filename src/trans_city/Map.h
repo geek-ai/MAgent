@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <set>
+#include <map>
 #include <assert.h>
 #include <random>
 #include "city_def.h"
@@ -38,6 +39,10 @@ public:
 
     Position get_random_blank(std::default_random_engine &random_engine);
     void extract_view(const Agent* agent, float *linear_buffer, int height, int width, int channel);
+
+    int do_move(Agent *agent, const int *delta,
+                const std::map<std::pair<Position, Position>, TrafficLine> &lines,
+                const std::vector<TrafficLight> &lights);
 
     /**
      * Utility

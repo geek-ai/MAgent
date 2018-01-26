@@ -129,7 +129,7 @@ class TransCity(Environment):
 
         n = self.get_num(handle)
         view_buf = self._get_obs_buf(no, self.OBS_VIEW_INDEX, (n,) + view_space, np.float32)
-        feature_buf = self._get_obs_buf(no, self.OBS_FEATURE_INDEX, (n, feature_space), np.float32)
+        feature_buf = self._get_obs_buf(no, self.OBS_FEATURE_INDEX, (n, feature_space[0]), np.float32)
 
         bufs = (ctypes.POINTER(ctypes.c_float) * 2)()
         bufs[0] = as_float_c_array(view_buf)

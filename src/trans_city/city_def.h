@@ -15,6 +15,10 @@ namespace trans_city {
 struct Position {
     int x;
     int y;
+
+    bool operator < (const Position &other) const {
+        return x < other.x || ((x == other.x) && y < other.y);
+    }
 };
 
 typedef int PositionInteger;
@@ -23,10 +27,13 @@ typedef enum {ACT_RIGHT, ACT_DOWN, ACT_LEFT, ACT_UP, ACT_NOOP, ACT_NUM} Action;
 
 enum {CHANNEL_WALL, CHANNEL_LIGHT, CHANNEL_PARK, CHANNEL_SELF, CHANNEL_OTHER, CHANNEL_NUM};
 
+const int MAX_COLOR_NUM = 16;
+
 typedef float Reward;
 
 class Agent;
 class TrafficLight;
+class TrafficLine;
 class Park;
 class Building;
 

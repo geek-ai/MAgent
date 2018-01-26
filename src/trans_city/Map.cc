@@ -17,7 +17,7 @@ Map::~Map() {
     delete [] slots;
 }
 
-void Map::reset(std::vector<Position> &maps, int width, int height) {
+void Map::reset(std::vector<Position> &walls, int width, int height) {
     if (slots != nullptr)
         delete [] slots;
     slots = new Slot[width * height];
@@ -32,15 +32,15 @@ void Map::reset(std::vector<Position> &maps, int width, int height) {
     // init border
     for (int i = 0; i < map_width; i++) {
         add_wall(Position{i, 0});
-        add_wall(Position{i, map_height - 1});
-        maps.emplace_back(Position{i, 0});
-        maps.emplace_back(Position{i, map_height - 1});
+        add_wall(Position{i, map_height-1});
+        walls.push_back(Position{i, 0});
+        walls.push_back(Position{i, map_height-1});
     }
     for (int i = 0; i < map_height; i++) {
         add_wall(Position{0, i});
-        add_wall(Position{map_width - 1, i});
-        maps.emplace_back(Position{0, i});
-        maps.emplace_back(Position{map_height - 1, i});
+        add_wall(Position{map_width-1, i});
+        walls.push_back(Position{0, i});
+        walls.push_back(Position{map_height-1, i});
     }
 }
 
@@ -158,6 +158,30 @@ void Map::extract_view(const Agent* agent, float *linear_buffer, int height, int
             view_y++;
         }
         view_x++;
+    }
+}
+
+int Map::do_move(Agent *agent, const int *delta,
+                 const std::map<std::pair<Position, Position>, TrafficLine> &lines,
+                 const std::vector<TrafficLight> &lights) {
+    Position pos = agent->get_pos();
+    Position new_pos = pos;
+    new_pos.x += delta[0];
+    new_pos.y += delta[1];
+
+
+    if (slots[pos2int(new_pos)].occ_type == OCC_NONE) {
+        auto iter = lines.find(std::make_pair(pos, new_pos));
+        if (iter != lines.end() && !iter->second.can_pass(lights))
+            return 0;
+
+        slots[pos2int(new_pos)].occ_type = OCC_AGENT;
+        slots[pos2int(new_pos)].occupier = agent;
+        slots[pos2int(pos)].occ_type = OCC_NONE;
+        agent->set_pos(new_pos);
+        return 1;
+    } else {
+        return 0;
     }
 }
 
