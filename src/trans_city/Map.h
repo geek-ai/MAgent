@@ -35,7 +35,7 @@ public:
     int add_agent(Agent* agent);
     int add_wall(Position pos);
     int add_light(Position pos, int w, int h);
-    int add_park(Position pos);
+    int add_park(Position pos, int w, int h, int no);
 
     Position get_random_blank(std::default_random_engine &random_engine);
     void extract_view(const Agent* agent, float *linear_buffer, int height, int width, int channel);

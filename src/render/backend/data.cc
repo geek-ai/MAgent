@@ -131,9 +131,9 @@ void Frame::load(std::istream & handle) {
             }
         }
     } catch (const RenderException &e) {
-        delete[](attackEvents);
-        attackEvents = nullptr;
-        nAttackEvents = 0;
+        delete[](strokeEvents);
+        strokeEvents = nullptr;
+        nStrokeEvents = 0;
         throw;
     }
 
@@ -196,7 +196,7 @@ Frame::~Frame() {
     }
 }
 
-Frame::Frame() : nAttackEvents(0), nStrokeEvents(0), nAgents(0), nBreads(0),
+Frame::Frame() : nAttackEvents(0), nStrokeEvents(0), nFillRectEvents(0), nAgents(0), nBreads(0),
                  agents(nullptr), attackEvents(nullptr), strokeEvents(nullptr),
                  fillRectEvents(nullptr), breads(nullptr) {
 
@@ -214,6 +214,7 @@ void Frame::releaseMemory() {
     agents = nullptr;
     attackEvents = nullptr;
     strokeEvents = nullptr;
+    fillRectEvents = nullptr;
     breads = nullptr;
 }
 

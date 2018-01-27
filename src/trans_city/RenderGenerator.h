@@ -42,6 +42,8 @@ private:
     int frame_per_file;
 
     unsigned int id_ct;
+
+    static const int cate_colors[20][3];
 };
 
 } // namespace magent

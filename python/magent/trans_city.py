@@ -25,6 +25,7 @@ class TransCity(Environment):
         config_value_type = {
             'map_width': int, 'map_height': int,
             'view_width': int, 'view_height': int,
+            'reward_scale': float,
             'embedding_size': int, 'seed': int,
             'render_dir': str,
         }

@@ -16,6 +16,29 @@
 namespace magent {
 namespace trans_city {
 
+const int RenderGenerator::cate_colors[20][3] = {
+    {31, 119, 180},
+    {174, 199, 232},
+    {255, 127, 14},
+    {255, 187, 120},
+    {44, 160, 44},
+    {152, 223, 138},
+    {214, 39, 40},
+    {255, 152, 150},
+    {148, 103, 189},
+    {197, 176, 213},
+    {140, 86, 75},
+    {196, 156, 148},
+    {227, 119, 194},
+    {247, 182, 210},
+    {127, 127, 127},
+    {199, 199, 199},
+    {188, 189, 34},
+    {219, 219, 141},
+    {23, 190, 207},
+    {158, 218, 229},
+};
+
 RenderGenerator::RenderGenerator() {
     save_dir = "";
     file_ct = frame_ct = 0;
@@ -55,27 +78,6 @@ void RenderGenerator::gen_config(int w, int h) {
     /***** config *****/
     std::ofstream f_config(save_dir + "/" + "config.json");
 
-    int colors[][3] = {
-        {248, 12, 18},
-        {238, 17, 0},
-        {255, 51, 17},
-        {255, 68, 34},
-        {255, 102, 68},
-        {255, 153, 51},
-        {254, 174, 45},
-        {204, 187, 51},
-        {208, 195, 16},
-        {170, 204, 34},
-        {105, 208, 37},
-        {34, 204, 170},
-        {18, 189, 185},
-        {17, 170, 187},
-        {68, 68, 221},
-        {51, 17, 187},
-        {59, 12, 189},
-        {68, 34, 153},
-    };
-
     f_config << "{" << std::endl;
     print_json(f_config, "width", w);
     print_json(f_config, "height", h);
@@ -88,24 +90,24 @@ void RenderGenerator::gen_config(int w, int h) {
 
     // groups
     f_config << "\"group\" : [" << std::endl;
-    for (int i = 0; i < sizeof(colors)/sizeof(colors[0]); i++) {
+    for (int i = 0; i < sizeof(cate_colors)/sizeof(cate_colors[0]); i++) {
         f_config << "{" << std::endl;
 
         print_json(f_config, "height", 1);
         print_json(f_config, "width", 1);
-        print_json(f_config, "style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 1));
+        print_json(f_config, "style", rgba_string(cate_colors[i][0], cate_colors[i][1], cate_colors[i][2], 1));
         print_json(f_config, "anchor", "[0, 0]");
         print_json(f_config, "max-speed", (int)0);
-        print_json(f_config, "speed-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.01));
+        print_json(f_config, "speed-style", rgba_string(cate_colors[i][0], cate_colors[i][1], cate_colors[i][2], 0.01));
         print_json(f_config, "vision-radius", 0);
         print_json(f_config, "vision-angle", 0);
-        print_json(f_config, "vision-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.2));
+        print_json(f_config, "vision-style", rgba_string(cate_colors[i][0], cate_colors[i][1], cate_colors[i][2], 0.2));
         print_json(f_config, "attack-radius", 0);
         print_json(f_config, "attack-angle", 0);
-        print_json(f_config, "attack-style", rgba_string(colors[i][0], colors[i][1], colors[i][2], 0.1));
+        print_json(f_config, "attack-style", rgba_string(cate_colors[i][0], cate_colors[i][1], cate_colors[i][2], 0.1));
         print_json(f_config, "broadcast-radius", 1, true);
 
-        if (i == sizeof(colors)/sizeof(colors[0]) - 1)
+        if (i == sizeof(cate_colors)/sizeof(cate_colors[0]) - 1)
             f_config << "}" << std::endl;
         else
             f_config << "}," << std::endl;
@@ -128,32 +130,12 @@ void RenderGenerator::render_a_frame(const std::vector<Agent *> &agents,
             " 0 255 0",
     };
     std::string building_colors[] = {
-            " 200 200 200"
+            " 205 205 205"
     };
     std::string light_tower_colors[] = {
-            " 240 240 0"
+            " 250 250 200"
     };
     std::string white_color = " 255 255 255";
-    int colors[][3] = {
-            {248, 12, 18},
-            {238, 17, 0},
-            {255, 51, 17},
-            {255, 68, 34},
-            {255, 102, 68},
-            {255, 153, 51},
-            {254, 174, 45},
-            {204, 187, 51},
-            {208, 195, 16},
-            {170, 204, 34},
-            {105, 208, 37},
-            {34, 204, 170},
-            {18, 189, 185},
-            {17, 170, 187},
-            {68, 68, 221},
-            {51, 17, 187},
-            {59, 12, 189},
-            {68, 34, 153},
-    };
 
 
     std::string filename = save_dir + "/" + "video_" + std::to_string(file_ct) + ".txt";
@@ -168,10 +150,28 @@ void RenderGenerator::render_a_frame(const std::vector<Agent *> &agents,
         }
     }
 
+    // count light tower
+    int n_light_tower = 0;
+    for (auto light : lights) {
+        int status = light.get_status();
+        int mask = light.get_mask();
+        int x, y, w, h;
+        std::tie(x, y, w, h) = light.get_location();
+        if (mask & 0x1 || mask & 0x2)
+            n_light_tower++;
+        if (mask & 0x2 || mask & 0x4)
+            n_light_tower++;
+        if (mask & 0x4 || mask & 0x8)
+            n_light_tower++;
+        if (mask & 0x8 || mask & 0x1)
+            n_light_tower++;
+    }
+
+
     fout << "F" << " " << agents.size()
                 << " " << 0                  // attack
                 << " " << lights.size() * 2  // light lines
-                << " " << buildings.size() + lights.size() * 4 // rectangle
+                << " " << buildings.size() + n_light_tower + parks.size() // rectangle
                 << " " << 0                  // food
                 << std::endl;
 
@@ -203,14 +203,13 @@ void RenderGenerator::render_a_frame(const std::vector<Agent *> &agents,
                 fout << "1" << " " << x+1 << " " << y + h << " " << x + w << " " << y + h << white_color << std::endl;
         } else {
             if (mask & 0x02)
-                fout << "1" << " " << x+1 << " " << y+1 << " " << x+1 << " " << y + h << light_color[1 - status] << std::endl;
-            else
-                fout << "1" << " " << x+1 << " " << y+1 << " " << x+1 << " " << y + h << white_color << std::endl;
-
-            if (mask & 0x08)
                 fout << "1" << " " << x + w << " " << y+1 << " " << x + w << " " << y + h << light_color[1 - status] << std::endl;
             else
                 fout << "1" << " " << x + w << " " << y+1 << " " << x + w << " " << y + h << white_color << std::endl;
+            if (mask & 0x08)
+                fout << "1" << " " << x+1 << " " << y+1 << " " << x+1 << " " << y + h << light_color[1 - status] << std::endl;
+            else
+                fout << "1" << " " << x+1 << " " << y+1 << " " << x+1 << " " << y + h << white_color << std::endl;
         }
     }
 
@@ -226,20 +225,32 @@ void RenderGenerator::render_a_frame(const std::vector<Agent *> &agents,
         fout << "2" << " " << x << " " << y << " " << x + w << " " << y + h << " " << building_colors[0] << std::endl;
     }
 
-    for (auto light : lights) {
-        int status = light.get_status();
-        int x, y, w, h;
-        std::tie(x, y, w, h) = light.get_location();
-        fout << "2" << " " << x << " " << y << " " << x + 1 << " " << y + 1 << " " << light_tower_colors[0] << std::endl;
-        fout << "2" << " " << x+w << " " << y << " " << x+w + 1 << " " << y + 1 << " " << light_tower_colors[0] << std::endl;
-        fout << "2" << " " << x << " " << y+h << " " << x + 1 << " " << y+h + 1 << " " << light_tower_colors[0] << std::endl;
-        fout << "2" << " " << x+w << " " << y+h << " " << x+w + 1 << " " << y+h + 1 << " " << light_tower_colors[0] << std::endl;
-    }
-
+    // park
     for (int i = 0; i < parks.size(); i++) {
         int x, y, w, h;
         std::tie(x, y, w, h) = parks[i].get_location();
-        fout << "2" << " " << x+w << " " << y+h << " " << x+w + 1 << " " << y+h + 1 << " " << colors[i] << std::endl;
+        fout << "2" << " " << x << " " << y << " " << x+w  << " " << y+h << " "
+             << cate_colors[i][0] << " " << cate_colors[i][1] << " " << cate_colors[i][2] << std::endl;
+    }
+
+    // light tower
+    std::string color;
+    for (auto light : lights) {
+        int status = light.get_status();
+        int mask = light.get_mask();
+        int x, y, w, h;
+        std::tie(x, y, w, h) = light.get_location();
+        if (mask & 0x1 || mask & 0x8)
+            fout << "2" << " " << x << " " << y << " " << x + 1 << " " << y + 1 << " " << light_tower_colors[0] << std::endl;
+
+        if (mask & 0x1 || mask & 0x2)
+            fout << "2" << " " << x+w << " " << y << " " << x+w + 1 << " " << y + 1 << " " << light_tower_colors[0] << std::endl;
+
+        if (mask & 0x8 || mask & 0x4)
+            fout << "2" << " " << x << " " << y+h << " " << x + 1 << " " << y+h + 1 << " " << light_tower_colors[0] << std::endl;
+
+        if (mask & 0x2 || mask & 0x4)
+            fout << "2" << " " << x+w << " " << y+h << " " << x+w + 1 << " " << y+h + 1 << " " << light_tower_colors[0] << std::endl;
     }
 
 }

@@ -89,11 +89,6 @@ int Map::add_light(Position pos, int w, int h) {
             Position{x+w, y+h}
     };
 
-    for (auto pos : poss) {
-        if (slots[pos2int(pos)].occ_type != OCC_NONE && slots[pos2int(pos)].occ_type != OCC_WALL)
-            return 0;
-    }
-
     slots[pos2int(x, y)].occ_type = OCC_LIGHT;
     slots[pos2int(x, y+h)].occ_type = OCC_LIGHT;
     slots[pos2int(x+w, y)].occ_type = OCC_LIGHT;
@@ -102,11 +97,12 @@ int Map::add_light(Position pos, int w, int h) {
     return 1;
 }
 
-int Map::add_park(Position pos) {
-    PositionInteger pos_int = pos2int(pos);
-    if (slots[pos_int].occ_type != OCC_NONE)
-        return 0;
-    slots[pos_int].occ_type = OCC_PARK;
+int Map::add_park(Position pos, int w, int h, int no) {
+    for (int x = pos.x; x < pos.x + w; x++)
+        for (int y = pos.y; y < pos.y + h; y++) {
+            slots[pos2int(x, y)].occ_type = OCC_PARK;
+            slots[pos2int(x, y)].occupier = reinterpret_cast<void*>(no);
+        }
     return 1;
 }
 
@@ -127,7 +123,6 @@ void Map::extract_view(const Agent* agent, float *linear_buffer, int height, int
 
     int view_x_start = 0 + x_start - (pos.x - width/2);
     int view_y_start = 0 + y_start - (pos.y - height/2);
-
     int view_x = view_x_start;
     for (int x = x_start; x <= x_end; x++) {
         int view_y = view_y_start;
@@ -140,11 +135,11 @@ void Map::extract_view(const Agent* agent, float *linear_buffer, int height, int
                 case OCC_WALL:
                     buffer.at(view_y, view_x, CHANNEL_WALL) = 1;
                     break;
-                case OCC_PARK:
-                    buffer.at(view_y, view_x, CHANNEL_PARK) = 1;
-                    break;
                 case OCC_LIGHT:
                     buffer.at(view_y, view_x, CHANNEL_LIGHT) = 1;
+                    break;
+                case OCC_PARK:
+                    buffer.at(view_y, view_x, CHANNEL_PARK) = 1;
                     break;
                 case OCC_AGENT:
                     occupier = (Agent*)slots[pos_int].occupier;
@@ -173,15 +168,20 @@ int Map::do_move(Agent *agent, const int *delta,
     if (slots[pos2int(new_pos)].occ_type == OCC_NONE) {
         auto iter = lines.find(std::make_pair(pos, new_pos));
         if (iter != lines.end() && !iter->second.can_pass(lights))
-            return 0;
+            return -1;
 
         slots[pos2int(new_pos)].occ_type = OCC_AGENT;
         slots[pos2int(new_pos)].occupier = agent;
         slots[pos2int(pos)].occ_type = OCC_NONE;
         agent->set_pos(new_pos);
-        return 1;
-    } else {
         return 0;
+    } else if (slots[pos2int(new_pos)].occ_type == OCC_PARK) {
+        if (reinterpret_cast<long>(slots[pos2int(new_pos)].occupier) == agent->get_color())
+            return 1;
+        else
+            return -2;
+    } else {
+        return -3;
     }
 }
 

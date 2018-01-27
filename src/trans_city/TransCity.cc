@@ -20,7 +20,7 @@ TransCity::TransCity() {
     interval_min = 10;
     interval_max = 20;
 
-    reward_scale = 10;
+    reward_scale = 2;
 }
 
 TransCity::~TransCity() {
@@ -92,6 +92,7 @@ void TransCity::add_object(int obj_id, int n, const char *method, const int *lin
                 int w = buf.at(i, 2);
                 int h = buf.at(i, 3);
                 int mask = buf.at(i, 4);
+                assert(mask != 0);
                 Position pos{x, y};
                 map.add_light(pos, w, h);
                 int interval = static_cast<int>(random_engine()) % (interval_max - interval_min) + interval_min;
@@ -118,12 +119,12 @@ void TransCity::add_object(int obj_id, int n, const char *method, const int *lin
                 for (int j = 1; j < h; j++) {
                     Position pos_1, pos_2;
                     if (mask & 0x2) {
-                        pos_1.x = x; pos_1.y = y + j; pos_2.x = x + 1; pos_2.y = y + j;
+                        pos_1.x = x + (w - 1); pos_1.y = y + j; pos_2.x = x + (w - 1) + 1; pos_2.y = y + j;
                         lines[std::make_pair(pos_1, pos_2)] = TrafficLine(idx, 1);
                         lines[std::make_pair(pos_2, pos_1)] = TrafficLine(idx, 1);
                     }
                     if (mask & 0x8) {
-                        pos_1.x = x + (w - 1); pos_1.y = y + j; pos_2.x = x + (w - 1) + 1; pos_2.y = y + j;
+                        pos_1.x = x; pos_1.y = y + j; pos_2.x = x + 1; pos_2.y = y + j;
                         lines[std::make_pair(pos_1, pos_2)] = TrafficLine(idx, 1);
                         lines[std::make_pair(pos_2, pos_1)] = TrafficLine(idx, 1);
                     }
@@ -134,12 +135,12 @@ void TransCity::add_object(int obj_id, int n, const char *method, const int *lin
         if (strequ(method, "custom")) {
             NDPointer<const int, 2> buf(linear_buffer, {{n, 4}});
             for (int i = 0; i < n; i++) {
-                map.add_park(Position{buf.at(i, 0), buf.at(i, 1)});
+                map.add_park(Position{buf.at(i, 0), buf.at(i, 1)}, buf.at(i, 2), buf.at(i, 3), (int)parks.size());
                 parks.emplace_back(Park(Position{buf.at(i, 0), buf.at(i, 1)}, buf.at(i, 2), buf.at(i, 3)));
             }
 
             if (parks.size() > MAX_COLOR_NUM)
-                LOG(FATAL) << "Too many parks";
+                LOG(FATAL) << "Too many parks: " << parks.size() << "/" << MAX_COLOR_NUM;
         }
     } else if (obj_id == -4) { // building
         if (strequ(method, "custom")) {
@@ -270,13 +271,17 @@ void TransCity::step(int *done) {
         Action act = agent->get_action();
 
         agent->add_reward(static_cast<float>(reward_scale *
-                (fabs(pos.x - goal.x) + fabs(pos.y - goal.y)) / (width + height)));
+                (width + height - fabs(pos.x - goal.x) - fabs(pos.y - goal.y)) / (width + height)));
 
         if (act > ACT_UP)
             continue;
         int dir = static_cast<int>(act);
 
-        map.do_move(agent, delta[dir], lines, lights);
+        int ret = map.do_move(agent, delta[dir], lines, lights);
+        if (ret == 1) { // park
+            agent->add_reward(2 * reward_scale);
+            agent->set_dead();
+        }
     }
 }
 
@@ -328,6 +333,14 @@ void TransCity::get_info(GroupHandle group, const char *name, void *void_buffer)
         #pragma omp parallel for
         for (int i = 0; i < agent_size; i++) {
             bool_buffer[i] = !agents[i]->is_dead();
+        }
+    } else if (strequ(name, "pos")) {
+        size_t agent_size = agents.size();
+        #pragma omp parallel for
+        for (int i = 0; i < agent_size; i++) {
+            int_buffer[2 * i] = agents[i]->get_pos().x;
+            int_buffer[2 * i + 1] = agents[i]->get_pos().y;
+
         }
     } else if (strequ(name, "action_space")) {
         int_buffer[0] = (int)ACT_NUM;

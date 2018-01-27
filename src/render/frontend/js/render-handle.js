@@ -65,7 +65,7 @@ function _drawStatusFigure() {
             if (_mapStyles !== undefined) {
                 _statusStaticCTX.strokeText('IPS: ' + _mapIPS.toString(), STATUS_PADDING_LEFT, STATUS_PADDING_TOP + STATUS_SPACING * 2);
                 _statusStaticCTX.strokeText('Window: ('
-                    + Math.floor(_offsetY).toString() + ', '
+                    + Math.floor(_offsetX).toString() + ', '
                     + Math.floor(_offsetY).toString() + ', '
                     + (Math.ceil(_offsetX + _gridCTX.canvas.width / gridSize)).toString() + ', '
                     + (Math.ceil(_offsetY + _gridCTX.canvas.height / gridSize)).toString() + ')',
@@ -707,7 +707,7 @@ function _animate() {
             _isBrowserSizeChanged = false;
         }
         if (_isGridSizeChanged) {
-            _drawGrid();
+            // _drawGrid();
             _isGridSizeChanged = false;
         }
         if (_isWindowChanged) {
