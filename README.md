@@ -31,6 +31,7 @@ export PYTHONPATH=$(pwd)/python:$PYTHONPATH
 ```
 
 ## Install on OSX
+**Note: There is an issue with homebrew for installing websocketpp, please refer to [#17](https://github.com/geek-ai/MAgent/issues/17)**
 ```bash
 git clone git@github.com:geek-ai/MAgent.git
 cd MAgent
