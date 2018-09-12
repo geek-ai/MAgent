@@ -29,6 +29,7 @@ GridWorld::GridWorld() {
     random_engine.seed(0);
 
     counter_x = counter_y = nullptr;
+    NUM_SEP_BUFFER = 1;
 }
 
 GridWorld::~GridWorld() {
