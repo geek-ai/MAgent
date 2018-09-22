@@ -149,6 +149,7 @@ class ProcessingModel(BaseModel):
             args=(addr, sample_buffer_capacity, RLModel, kwargs),
         )
 
+        self.client_proc = proc
         proc.start()
         listener = multiprocessing.connection.Listener(addr)
         self.conn = listener.accept()
@@ -273,7 +274,15 @@ class ProcessingModel(BaseModel):
 
     def quit(self):
         """ quit """
+        proc = self.client_proc
+        self.client_proc = None
         self.conn.send(["quit"])
+        proc.join()
+
+    def __del__(self):
+        """ quit in destruction """
+        if self.client_proc is not None:
+            quit()
 
 
 def model_client(addr, sample_buffer_capacity, RLModel, model_args):
