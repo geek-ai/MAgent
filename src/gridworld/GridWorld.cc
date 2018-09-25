@@ -81,7 +81,8 @@ void GridWorld::reset() {
         }
         move_buffers = new std::vector<MoveAction>[NUM_SEP_BUFFER];
         turn_buffers = new std::vector<TurnAction>[NUM_SEP_BUFFER];
-    }
+    } else
+        NUM_SEP_BUFFER = 1;
 
     // reset map
     map.reset(width, height, food_mode);

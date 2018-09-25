@@ -97,24 +97,32 @@ function _drawNumbers() {
 function _onkeydown(event) {
     var windowCenterX, windowCenterY;
     if (event.keyCode === 37) {
-        _offsetX = _offsetX - Math.max(1, Math.round(MOVE_SPACING * 10 / gridSize)); // Left
+        // Left
+        _offsetX = _offsetX - Math.max(1, Math.round(MOVE_SPACING * 10 / gridSize));
         _isWindowChanged = true;
     } else if (event.keyCode === 38) {
-        _offsetY = _offsetY - Math.max(1, Math.round(MOVE_SPACING * 10 / gridSize)); // Up
+        // Up
+        _offsetY = _offsetY - Math.max(1, Math.round(MOVE_SPACING * 10 / gridSize));
         _isWindowChanged = true;
     } else if (event.keyCode === 39) {
+        // Right
         _offsetX = _offsetX + Math.max(1, Math.round(MOVE_SPACING * 10 / gridSize));
         _isWindowChanged = true;
     } else if (event.keyCode === 40) {
+        // Down
         _offsetY = _offsetY + Math.max(1, Math.round(MOVE_SPACING * 10 / gridSize));
         _isWindowChanged = true;
     } else if (event.keyCode === 69) {
+        // E: Edit file name
         $("#magnet-file-modal").modal('show');
     } else if (event.keyCode === 72) {
+        // H: Help
         $("#magnet-help-modal").modal('show');
     } else if (event.keyCode === 83) {
+        // S: Settings
         $("#magnet-settings-modal").modal('show');
     } else if (event.keyCode === 188) {
+        // ,<: Zoom Out
         windowCenterX = _gridCTX.canvas.width / 2 / gridSize + _offsetX;
         windowCenterY = _gridCTX.canvas.height / 2 / gridSize + _offsetY;
         gridSize = Math.max(1, gridSize - 1);
@@ -123,6 +131,7 @@ function _onkeydown(event) {
         _isGridSizeChanged = true;
         _isWindowChanged = true;
     } else if (event.keyCode === 190) {
+        // .>: Zoom In
         windowCenterX = _gridCTX.canvas.width / 2 / gridSize + _offsetX;
         windowCenterY = _gridCTX.canvas.height / 2 / gridSize + _offsetY;
         gridSize = Math.min(100, gridSize + 1);
@@ -131,6 +140,7 @@ function _onkeydown(event) {
         _isGridSizeChanged = true;
         _isWindowChanged = true;
     } else if (event.keyCode === 80) {
+        // P: Pause
         _mapForcedPause ^= 1;
     }
 }
@@ -229,7 +239,7 @@ function run() {
                     _offsetY = 0;
                     gridSize = 10;
                     _mapAnimateTick = 0;
-                    _mapSpeed = 80;
+                    _mapSpeed = 250;
                     _mapForcedPause = false;
 
                     _gridCTX = document.getElementById('magnet-canvas-grid').getContext('2d');
@@ -278,7 +288,7 @@ function run() {
                         .removeAttr('disabled')
                         .attr('min', 0)
                         .attr('max', ANIMATE_STEP)
-                        .attr('value', 80)
+                        .attr('value', 250)
                         .bind('change', function () {
                             _mapSpeed = parseInt($('#magnet-settings-speed').val());
                         });
