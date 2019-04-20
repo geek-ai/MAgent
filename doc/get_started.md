@@ -27,6 +27,14 @@ ID embedding is the binary representation of agent's unique ID.
 
 <img src="../data/figure/observation_space.png" width="350">
 
+The whole observation is an array of shape `(n_agents, view_width, view_height, n_channel)` for all agents.
+The above figure shows the observation for one agent. The spatial view contains 7 channels. `Wall` channel
+is a "0/1" indicator to show whether there is a wall. `Group 1`, `Group 2` is the "0/1" indicators for agents in 
+group 1, group 2. `Hp` is the normalized health point (range 0-1). `Minimap` is used to give a fuzzy global 
+observation to the agents （no fog of war). The value in the minimap channel is computed as follows: 
+1. Squeeze global map (e.g. 100x100) into minimap (e.g. 10x10)
+2. The value of a minimap cell = (number of agents in this cell) / (number of all the agents)
+
 ## Action
 Actions are discrete actions. They can be move, attack and turn.
 In the figure below, move range and attack range are also circular range (chunked to fit grids).
