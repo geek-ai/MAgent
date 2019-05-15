@@ -1,8 +1,5 @@
 <h1><img src="data/figure/logo.png" width="200"></h1>
 
-![Build Status](http://112.74.109.55:8080/buildStatus/icon?job=magent)
-![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)
-
 MAgent is a research platform for many-agent reinforcement learning.
 Unlike previous research platforms that focus on reinforcement learning research with a single agent or only few agents, 
 MAgent aims at supporting reinforcement learning research that scales up from hundreds to millions of agents.
