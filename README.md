@@ -1,5 +1,11 @@
 <h1><img src="data/figure/logo.png" width="200"></h1>
 
+## This project is no longer maintained
+
+Please see https://github.com/PettingZoo-Team/MAgent for a maintained fork of this project that's installable with pip.
+
+## MAgent
+
 MAgent is a research platform for many-agent reinforcement learning.
 Unlike previous research platforms that focus on reinforcement learning research with a single agent or only few agents, 
 MAgent aims at supporting reinforcement learning research that scales up from hundreds to millions of agents.
