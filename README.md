@@ -2,7 +2,7 @@
 
 ## This project is no longer maintained
 
-Please see https://github.com/PettingZoo-Team/MAgent for a maintained fork of this project that's installable with pip.
+Please see https://github.com/Farama-Foundation/MAgent for a maintained fork of this project that's installable with pip.
 
 ## MAgent
 
