@@ -189,10 +189,9 @@ class AdvantageActorCritic(MXBaseModel):
         # calc buffer size
         n = 0
         for episode in sample_buffer.episodes():
-            if episode.terminal:
-                n += len(episode.rewards)
-            else:
-                n += len(episode.rewards) - 1
+            n += len(episode.rewards)
+            if not episode.terminal:
+                n -= 1
 
         if n == 0:
             return [0.0, 0.0, 0.0], 0.0
